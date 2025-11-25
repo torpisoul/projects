@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,8 @@
         :root {
             --bg-color: #121212;
             --card-color: #1e1e1e;
-            --primary-color: #00bcd4; /* A nice cyan for highlights */
+            --primary-color: #00bcd4;
+            /* A nice cyan for highlights */
             --text-color: #e0e0e0;
             --text-muted: #8e8e8e;
             --shadow-color: rgba(0, 0, 0, 0.4);
@@ -73,7 +75,8 @@
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            opacity: 0; /* For fade-in animation */
+            opacity: 0;
+            /* For fade-in animation */
             transform: translateY(20px);
         }
 
@@ -121,7 +124,8 @@
             color: var(--text-muted);
             font-weight: 300;
             margin: 0;
-            flex-grow: 1; /* Pushes the button to the bottom */
+            flex-grow: 1;
+            /* Pushes the button to the bottom */
         }
 
         .play-button {
@@ -145,13 +149,14 @@
             color: var(--text-muted);
             font-size: 0.9rem;
         }
-        
+
         .footer a {
             color: var(--primary-color);
             text-decoration: none;
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -166,7 +171,8 @@
                 <!-- Game Card 1: ColourCraft -->
                 <a href="./colourcraft/index.html" class="game-card">
                     <div class="card-image-container">
-                        <img src="https://placehold.co/600x400/121212/00BCD4?text=ColourCraft" alt="ColourCraft Game Preview">
+                        <img src="https://placehold.co/600x400/121212/00BCD4?text=ColourCraft"
+                            alt="ColourCraft Game Preview">
                     </div>
                     <div class="card-content">
                         <h3>ColourCraft</h3>
@@ -186,27 +192,29 @@
                         <span class="play-button">Play Now</span>
                     </div>
                 </a>
-                
-                <!-- Add New Game Cards Here -->
-                <!-- 
-                <a href="#" class="game-card">
+
+                <!-- Add this card after the Classify card (around line 188) -->
+
+                <!-- Game Card 3: TorpTCG -->
+                <a href="./torptcg/index.html" class="game-card">
                     <div class="card-image-container">
-                        <img src="https://placehold.co/600x400/121212/FFFFFF?text=Coming+Soon" alt="Coming Soon">
+                        <img src="https://placehold.co/600x400/0f1115/ff8c42?text=TorpTCG" alt="TorpTCG Preview">
                     </div>
                     <div class="card-content">
-                        <h3>New Game</h3>
-                        <p>A description of your next amazing project will go right here.</p>
-                        <span class="play-button">Coming Soon</span>
+                        <h3>TorpTCG</h3>
+                        <p>Riftbound TCG specialists. Browse products, sealed packs, and custom 3D printing services.
+                        </p>
+                        <span class="play-button">Visit Store</span>
                     </div>
                 </a>
-                -->
 
             </div>
         </main>
     </div>
 
     <footer class="footer">
-        <p>&copy; 2025 Torpisoul. All rights reserved. View the project on <a href="https://github.com/torpisoul" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+        <p>&copy; 2025 Torpisoul. All rights reserved. View the project on <a href="https://github.com/torpisoul"
+                target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
     </footer>
 
     <script>
@@ -222,4 +230,5 @@
     </script>
 
 </body>
+
 </html>

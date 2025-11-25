@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TorpTCG Admin - Stock Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            padding-top: 50px;
+        }
+
+        .admin-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #a29bfe;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5641e5;
+        }
+
+        .success-msg {
+            color: #00b894;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #a29bfe;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-container">
+        <h1>📦 Stock Management</h1>
+        <form id="addProductForm">
+            <div class="form-group">
+                <label>Product Title</label>
+                <input type="text" id="title" required placeholder="e.g. Riftbound Booster Box">
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <select id="category">
+                    <option value="singles">Single Card</option>
+                    <option value="sealed">Sealed Product</option>
+                    <option value="accessories">Accessory</option>
+                    <option value="prints">3D Print</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Price (£)</label>
+                <input type="text" id="price" required placeholder="e.g. 24.99">
+            </div>
+
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="url" id="image" required placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label>Stock Status</label>
+                <select id="stock">
+                    <option value="In Stock">In Stock</option>
+                    <option value="Low Stock">Low Stock</option>
+                    <option value="Made to Order">Made to Order</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                </select>
+            </div>
+
+            <button type="submit">Add Product</button>
+            <p class="success-msg" id="successMsg">Product added successfully!</p>
+        </form>
+        <a href="index.html" class="back-link">← Back to Shop</a>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('addProductForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const newProduct = {
+                id: Date.now(), // Simple unique ID
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                price: '£' + document.getElementById('price').value.replace('£', ''),
+                image: document.getElementById('image').value,
+                stock: document.getElementById('stock').value
+            };
+
+            // Use the function from script.js (we will add this next)
+            addProduct(newProduct);
+
+            // Show success and reset
+            const msg = document.getElementById('successMsg');
+            msg.style.display = 'block';
+            this.reset();
+            setTimeout(() => msg.style.display = 'none', 3000);
+        });
+    </script>
+</body>
+
+</html>

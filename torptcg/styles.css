@@ -1,0 +1,462 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+:root {
+    /* TorpTCG Theme - Dark, Mystical, Premium */
+    --bg-dark: #0f1115;
+    --bg-card: #1a1d24;
+    --primary: #ff8c42;
+    /* Vibrant Orange */
+    --accent: #c0c0c0;
+    /* Metallic Silver */
+    --text-main: #dfe6e9;
+    --text-muted: #b2bec3;
+    --gradient-main: linear-gradient(135deg, #ff8c42 0%, #ffb366 100%);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+
+    /* Holographic & Rare Effects */
+    --foil-gradient: linear-gradient(115deg,
+            transparent 20%,
+            rgba(255, 255, 255, 0.4) 25%,
+            rgba(255, 140, 66, 0.3) 30%,
+            rgba(192, 192, 192, 0.3) 35%,
+            rgba(255, 255, 255, 0.4) 40%,
+            transparent 45%);
+    --gold-gradient: linear-gradient(to bottom, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    --neon-glow: 0 0 10px rgba(255, 140, 66, 0.5), 0 0 20px rgba(255, 140, 66, 0.3), 0 0 30px rgba(255, 140, 66, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+.logo {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+}
+
+/* --- NAVIGATION --- */
+nav {
+    background: rgba(15, 17, 21, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1.2rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo {
+    font-size: 1.8rem;
+    color: white;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-weight: 500;
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+/* --- HERO SECTION --- */
+.hero {
+    background: url('hero-bg.png') no-repeat center center/cover;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 0 20px;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, transparent 0%, var(--bg-dark) 90%);
+    pointer-events: none;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    z-index: 1;
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    color: white;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 30px;
+    z-index: 1;
+}
+
+.btn {
+    display: inline-block;
+    background: var(--gradient-main);
+    color: white;
+    padding: 12px 35px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 140, 66, 0.4);
+}
+
+/* Button shine effect */
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            transparent 100%);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.btn:hover::after {
+    left: 200%;
+}
+
+/* --- LAYOUT --- */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    color: white;
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--accent);
+    margin: 15px auto 0;
+    border-radius: 2px;
+}
+
+/* --- FILTERS --- */
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 10px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: unset;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--glass-bg);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 15px rgba(255, 140, 66, 0.2);
+}
+
+/* --- PRODUCT GRID --- */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.product-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.product-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: var(--primary);
+}
+
+/* Holographic shine overlay - controlled by JS based on mouse position */
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%,
+            rgba(255, 255, 255, 0.4) 0%,
+            rgba(255, 255, 255, 0.2) 20%,
+            rgba(255, 255, 255, 0.1) 40%,
+            transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+}
+
+.product-card:hover::before {
+    opacity: 1;
+}
+
+.card-image-wrapper {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.category-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border: 1px solid var(--glass-border);
+    z-index: 5;
+}
+
+.product-details {
+    padding: 20px;
+}
+
+.stock-badge {
+    font-size: 0.75rem;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.stock-in {
+    color: #00b894;
+}
+
+.stock-low {
+    color: #fdcb6e;
+}
+
+.stock-out {
+    color: #ff7675;
+}
+
+.product-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.product-price {
+    font-size: 1.4rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.btn-add {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-add:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Button shine effect for add to cart */
+.btn-add::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 100%);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.btn-add:hover::after {
+    left: 200%;
+}
+
+/* --- SERVICES --- */
+.services-section {
+    background: #131519;
+    padding: 100px 0;
+}
+
+.service-card {
+    background: var(--bg-card);
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+}
+
+/* --- FOOTER --- */
+footer {
+    background: #0a0b0e;
+    padding: 60px 20px;
+    text-align: center;
+    border-top: 1px solid var(--glass-border);
+}
+
+.legal-text {
+    color: #636e72;
+    margin-top: 20px;
+    font-size: 0.8rem;
+}
+
+/* --- FORM --- */
+input,
+textarea,
+select {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    margin-bottom: 15px;
+    font-family: 'Inter', sans-serif;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.2);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+}
