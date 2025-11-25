@@ -2,7 +2,15 @@
   command = "npm run build"
   publish = "."
 
+# Don't redirect /admin to index.html - let Netlify CMS handle it
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/:splat"
+  status = 200
+
+# Redirect everything else to index.html for SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
