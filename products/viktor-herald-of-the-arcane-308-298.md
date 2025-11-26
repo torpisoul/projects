@@ -1,5 +1,5 @@
 ---
-title: Viktor Herald of the Arcane 308/298
+title: Viktor Herald of the Arcane 308/298 Overnumbered
 category: singles
 price: £65
 image: https://static.dotgg.gg/riftbound/cards/OGN-308.webp
@@ -11,5 +11,5 @@ description: The product is a rare and overnumbered Viktor card from the Origins
   is a highly sought-after collectable for fans and collectors of the game. This
   particular card, numbered 308 out of 298, is in near mint condition, making it
   a valuable addition to any collection.
-featured: false
+featured: true
 ---
