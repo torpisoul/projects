@@ -2,7 +2,7 @@
 async function fetchProducts() {
     try {
         // Fetch the products directory listing
-        const response = await fetch('/products-data.json');
+        const response = await fetch('/.netlify/functions/products');
         if (!response.ok) {
             console.warn('Products data file not found, using fallback data');
             return getFallbackProducts();
