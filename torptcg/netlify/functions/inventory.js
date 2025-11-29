@@ -1,32 +1,56 @@
 // Netlify Function: inventory
 // Handles both GET (read inventory) and POST (update stock) operations
-// Provides atomic stock management with concurrency control
+// Uses native https module to avoid dependency issues
 
-const fetch = require('node-fetch');
+const https = require('https');
 const { EXTERNAL_JSON_URL } = require('./config.js');
 
 // Environment variable for JSONBin API key (set in Netlify dashboard)
 const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
 
+// Helper function to make HTTP requests
+function makeRequest(url, options, bodyData) {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                resolve({
+                    ok: res.statusCode >= 200 && res.statusCode < 300,
+                    status: res.statusCode,
+                    statusText: res.statusMessage,
+                    data: data
+                });
+            });
+        });
+
+        req.on('error', (e) => {
+            reject(e);
+        });
+
+        if (bodyData) {
+            req.write(bodyData);
+        }
+        req.end();
+    });
+}
+
 exports.handler = async function (event, context) {
-    console.log("Inventory function invoked");
+    console.log("Inventory function invoked (https version)");
     console.log("Method:", event.httpMethod);
 
     const method = event.httpMethod;
     const headers = {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Access-Control-Allow-Origin": "*", // CORS support
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type"
     };
 
-    // Handle OPTIONS request for CORS
     if (method === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers,
-            body: ''
-        };
+        return { statusCode: 200, headers, body: '' };
     }
 
     try {
@@ -34,31 +58,28 @@ exports.handler = async function (event, context) {
         // GET: Fetch current inventory
         // ============================================
         if (method === 'GET') {
-            console.log("Fetching from:", EXTERNAL_JSON_URL);
-
-            const fetchOptions = {
+            const url = new URL(EXTERNAL_JSON_URL);
+            const options = {
+                method: 'GET',
                 headers: {}
             };
 
             if (JSONBIN_API_KEY) {
-                fetchOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
+                options.headers['X-Access-Key'] = JSONBIN_API_KEY;
             }
 
-            const response = await fetch(EXTERNAL_JSON_URL, fetchOptions);
+            const response = await makeRequest(url, options);
 
             if (!response.ok) {
-                console.error('Failed to fetch from JSONBin:', response.status, response.statusText);
-                const text = await response.text();
-                console.error('Response body:', text);
+                console.error('Failed to fetch from JSONBin:', response.status);
                 return {
                     statusCode: 502,
                     headers,
-                    body: JSON.stringify({ error: "Failed to fetch inventory data", details: text })
+                    body: JSON.stringify({ error: "Failed to fetch inventory data", details: response.data })
                 };
             }
 
-            const data = await response.json();
-            // JSONBin wraps data in 'record' property
+            const data = JSON.parse(response.data);
             const inventory = data?.record ?? data;
 
             return {
@@ -69,114 +90,81 @@ exports.handler = async function (event, context) {
         }
 
         // ============================================
-        // POST: Update stock (atomic operation)
+        // POST: Update stock
         // ============================================
         if (method === 'POST') {
             const body = JSON.parse(event.body || '{}');
             const { productId, delta, action } = body;
 
-            // Validate input
             if (!productId) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: "productId is required" })
-                };
+                return { statusCode: 400, headers, body: JSON.stringify({ error: "productId is required" }) };
             }
 
-            if (action !== 'set' && typeof delta !== 'number') {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: "delta must be a number for increment/decrement operations" })
-                };
-            }
-
-            // Fetch current inventory
-            const fetchOptions = {
+            // 1. Fetch current
+            const url = new URL(EXTERNAL_JSON_URL);
+            const getOptions = {
+                method: 'GET',
                 headers: {}
             };
             if (JSONBIN_API_KEY) {
-                fetchOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
+                getOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
             }
 
-            const fetchResponse = await fetch(EXTERNAL_JSON_URL, fetchOptions);
-
+            const fetchResponse = await makeRequest(url, getOptions);
             if (!fetchResponse.ok) {
-                return {
-                    statusCode: 502,
-                    headers,
-                    body: JSON.stringify({ error: "Failed to fetch current inventory" })
-                };
+                return { statusCode: 502, headers, body: JSON.stringify({ error: "Failed to fetch current inventory" }) };
             }
 
-            const currentData = await fetchResponse.json();
+            const currentData = JSON.parse(fetchResponse.data);
             const inventory = currentData?.record ?? currentData;
-
-            // Find the product
             const product = inventory.products?.find(p => p.id === productId);
+
             if (!product) {
-                return {
-                    statusCode: 404,
-                    headers,
-                    body: JSON.stringify({ error: `Product ${productId} not found` })
-                };
+                return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productId} not found` }) };
             }
 
-            // Perform the stock operation
+            // 2. Calculate new stock
             let newStock;
             if (action === 'set') {
-                // Direct set (for admin updates)
                 newStock = body.stock;
             } else {
-                // Increment/decrement (for purchases/restocks)
                 newStock = (product.stock || 0) + delta;
             }
 
-            // Validate stock level
             if (newStock < 0) {
                 return {
-                    statusCode: 409, // Conflict
+                    statusCode: 409,
                     headers,
-                    body: JSON.stringify({
-                        error: "Insufficient stock",
-                        currentStock: product.stock,
-                        requested: Math.abs(delta)
-                    })
+                    body: JSON.stringify({ error: "Insufficient stock", currentStock: product.stock })
                 };
             }
 
-            // Update the product
             const oldStock = product.stock;
             product.stock = newStock;
-
-            // Update availability flag
             product.available = newStock > 0 || product.preOrder === true;
 
-            // Write back to JSONBin
+            // 3. Update
+            // Note: JSONBin V3 uses PUT to update the bin
             const binId = EXTERNAL_JSON_URL.split('/').pop();
-            const updateUrl = `https://api.jsonbin.io/v3/b/${binId}`;
-
-            const updateResponse = await fetch(updateUrl, {
+            const updateUrl = new URL(`https://api.jsonbin.io/v3/b/${binId}`);
+            const updateOptions = {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Access-Key': JSONBIN_API_KEY || ''
-                },
-                body: JSON.stringify(inventory)
-            });
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (JSONBIN_API_KEY) {
+                updateOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
+            }
+
+            const updateResponse = await makeRequest(updateUrl, updateOptions, JSON.stringify(inventory));
 
             if (!updateResponse.ok) {
                 console.error('Failed to update JSONBin:', updateResponse.status);
-                return {
-                    statusCode: 502,
-                    headers,
-                    body: JSON.stringify({ error: "Failed to update inventory" })
-                };
+                return { statusCode: 502, headers, body: JSON.stringify({ error: "Failed to update inventory" }) };
             }
 
-            // Log the change (for audit trail)
-            console.log(`[INVENTORY] Product ${productId}: ${oldStock} → ${newStock} (delta: ${delta || 'set'})`);
+            console.log(`[INVENTORY] Product ${productId}: ${oldStock} → ${newStock}`);
 
             return {
                 statusCode: 200,
@@ -194,25 +182,14 @@ exports.handler = async function (event, context) {
             };
         }
 
-        // ============================================
-        // Unsupported method
-        // ============================================
-        return {
-            statusCode: 405,
-            headers,
-            body: JSON.stringify({ error: "Method not allowed. Use GET or POST." })
-        };
+        return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
 
     } catch (err) {
-        console.error("Error in inventory function:", err);
+        console.error("Error:", err);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({
-                error: "Internal server error",
-                message: err.message,
-                stack: err.stack
-            })
+            body: JSON.stringify({ error: "Internal server error", message: err.message })
         };
     }
 };
