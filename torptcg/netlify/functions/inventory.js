@@ -12,7 +12,8 @@ exports.handler = async function (event, context) {
     const method = event.httpMethod;
     const headers = {
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache, no-store, must-revalidate"
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Access-Control-Allow-Origin": "*"
     };
 
     try {
@@ -20,22 +21,43 @@ exports.handler = async function (event, context) {
         // GET: Fetch current inventory
         // ============================================
         if (method === 'GET') {
+            console.log('[INVENTORY] Fetching from:', EXTERNAL_JSON_URL);
+            console.log('[INVENTORY] API Key present:', !!JSONBIN_API_KEY);
+
+            const fetchHeaders = {};
+            if (JSONBIN_API_KEY) {
+                fetchHeaders['X-Access-Key'] = JSONBIN_API_KEY;
+            }
+
+            console.log('[INVENTORY] Fetch headers:', Object.keys(fetchHeaders));
+
             const response = await fetch(EXTERNAL_JSON_URL, {
-                headers: JSONBIN_API_KEY ? { 'X-Access-Key': JSONBIN_API_KEY } : {}
+                headers: fetchHeaders
             });
 
+            console.log('[INVENTORY] JSONBin response status:', response.status);
+
             if (!response.ok) {
-                console.error('Failed to fetch from JSONBin:', response.status);
+                const errorText = await response.text();
+                console.error('[INVENTORY] JSONBin error:', response.status, errorText);
                 return {
                     statusCode: 502,
                     headers,
-                    body: JSON.stringify({ error: "Failed to fetch inventory data" })
+                    body: JSON.stringify({
+                        error: "Failed to fetch inventory data",
+                        status: response.status,
+                        details: errorText
+                    })
                 };
             }
 
             const data = await response.json();
+            console.log('[INVENTORY] Data received, has record:', !!data.record);
+
             // JSONBin wraps data in 'record' property
             const inventory = data?.record ?? data;
+
+            console.log('[INVENTORY] Returning inventory with', inventory.products?.length || 0, 'products');
 
             return {
                 statusCode: 200,
@@ -69,8 +91,13 @@ exports.handler = async function (event, context) {
             }
 
             // Fetch current inventory
+            const fetchHeaders = {};
+            if (JSONBIN_API_KEY) {
+                fetchHeaders['X-Access-Key'] = JSONBIN_API_KEY;
+            }
+
             const fetchResponse = await fetch(EXTERNAL_JSON_URL, {
-                headers: JSONBIN_API_KEY ? { 'X-Access-Key': JSONBIN_API_KEY } : {}
+                headers: fetchHeaders
             });
 
             if (!fetchResponse.ok) {
@@ -128,12 +155,16 @@ exports.handler = async function (event, context) {
             const binId = EXTERNAL_JSON_URL.split('/').pop();
             const updateUrl = `https://api.jsonbin.io/v3/b/${binId}`;
 
+            const updateHeaders = {
+                'Content-Type': 'application/json'
+            };
+            if (JSONBIN_API_KEY) {
+                updateHeaders['X-Access-Key'] = JSONBIN_API_KEY;
+            }
+
             const updateResponse = await fetch(updateUrl, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Access-Key': JSONBIN_API_KEY || ''
-                },
+                headers: updateHeaders,
                 body: JSON.stringify(inventory)
             });
 
@@ -175,13 +206,15 @@ exports.handler = async function (event, context) {
         };
 
     } catch (err) {
-        console.error("Error in inventory function:", err);
+        console.error("[INVENTORY] Error:", err.message);
+        console.error("[INVENTORY] Stack:", err.stack);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 error: "Internal server error",
-                message: err.message
+                message: err.message,
+                stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
             })
         };
     }
