@@ -3,10 +3,15 @@
 // Uses native https module to avoid dependency issues
 
 const https = require('https');
-const { EXTERNAL_JSON_URL, JSONBIN_API_KEY: CONFIG_API_KEY } = require('./config.js');
+let config = {};
+try {
+    config = require('./config.js');
+} catch (e) {
+    // config.js not found, rely on process.env
+}
 
-// Environment variable for JSONBin API key (set in Netlify dashboard) or fallback to config
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || CONFIG_API_KEY;
+const EXTERNAL_JSON_URL = process.env.EXTERNAL_JSON_URL || config.EXTERNAL_JSON_URL;
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || config.JSONBIN_API_KEY;
 
 // Helper function to make HTTP requests
 function makeRequest(url, options, bodyData) {
@@ -92,15 +97,14 @@ exports.handler = async function (event, context) {
         // ============================================
         // POST: Update stock
         // ============================================
+        // ============================================
+        // POST: Update inventory (Stock, Add, Edit, Delete)
+        // ============================================
         if (method === 'POST') {
             const body = JSON.parse(event.body || '{}');
-            const { productId, delta, action } = body;
+            const { action, productId, delta, product: productData } = body;
 
-            if (!productId) {
-                return { statusCode: 400, headers, body: JSON.stringify({ error: "productId is required" }) };
-            }
-
-            // 1. Fetch current
+            // 1. Fetch current inventory
             const url = new URL(EXTERNAL_JSON_URL);
             const getOptions = {
                 method: 'GET',
@@ -117,34 +121,102 @@ exports.handler = async function (event, context) {
 
             const currentData = JSON.parse(fetchResponse.data);
             const inventory = currentData?.record ?? currentData;
-            const product = inventory.products?.find(p => p.id === productId);
 
-            if (!product) {
-                return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productId} not found` }) };
+            // Ensure products array exists
+            if (!inventory.products) {
+                inventory.products = [];
             }
 
-            // 2. Calculate new stock
-            let newStock;
-            if (action === 'set') {
-                newStock = body.stock;
+            let responseBody = {};
+
+            // 2. Handle Actions
+            if (action === 'create') {
+                // Generate ID if not provided
+                const newId = productData.id || 'p' + Date.now();
+                const newProduct = {
+                    ...productData,
+                    id: newId,
+                    stock: parseInt(productData.stock || 0),
+                    price: parseFloat(productData.price || 0),
+                    available: (productData.stock > 0 || productData.preOrder === true)
+                };
+
+                inventory.products.push(newProduct);
+                responseBody = { success: true, message: "Product created", product: newProduct };
+
+            } else if (action === 'update') {
+                const index = inventory.products.findIndex(p => p.id === productData.id);
+                if (index === -1) {
+                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productData.id} not found` }) };
+                }
+
+                // Merge updates
+                inventory.products[index] = {
+                    ...inventory.products[index],
+                    ...productData,
+                    stock: parseInt(productData.stock),
+                    price: parseFloat(productData.price),
+                    available: (parseInt(productData.stock) > 0 || productData.preOrder === true)
+                };
+
+                responseBody = { success: true, message: "Product updated", product: inventory.products[index] };
+
+            } else if (action === 'delete') {
+                const idToDelete = productId || productData?.id;
+                const initialLength = inventory.products.length;
+                inventory.products = inventory.products.filter(p => p.id !== idToDelete);
+
+                if (inventory.products.length === initialLength) {
+                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${idToDelete} not found` }) };
+                }
+
+                responseBody = { success: true, message: "Product deleted" };
+
             } else {
-                newStock = (product.stock || 0) + delta;
-            }
+                // Default: Stock Update (Existing Logic)
+                if (!productId) {
+                    return { statusCode: 400, headers, body: JSON.stringify({ error: "productId is required" }) };
+                }
 
-            if (newStock < 0) {
-                return {
-                    statusCode: 409,
-                    headers,
-                    body: JSON.stringify({ error: "Insufficient stock", currentStock: product.stock })
+                const product = inventory.products.find(p => p.id === productId);
+                if (!product) {
+                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productId} not found` }) };
+                }
+
+                let newStock;
+                if (action === 'set') {
+                    newStock = body.stock;
+                } else {
+                    newStock = (product.stock || 0) + delta;
+                }
+
+                if (newStock < 0) {
+                    return {
+                        statusCode: 409,
+                        headers,
+                        body: JSON.stringify({ error: "Insufficient stock", currentStock: product.stock })
+                    };
+                }
+
+                const oldStock = product.stock;
+                product.stock = newStock;
+                product.available = newStock > 0 || product.preOrder === true;
+
+                console.log(`[INVENTORY] Product ${productId}: ${oldStock} → ${newStock}`);
+
+                responseBody = {
+                    success: true,
+                    product: {
+                        id: product.id,
+                        title: product.title,
+                        oldStock,
+                        newStock,
+                        available: product.available
+                    }
                 };
             }
 
-            const oldStock = product.stock;
-            product.stock = newStock;
-            product.available = newStock > 0 || product.preOrder === true;
-
-            // 3. Update
-            // Note: JSONBin V3 uses PUT to update the bin
+            // 3. Save to JSONBin
             const binId = EXTERNAL_JSON_URL.split('/').pop();
             const updateUrl = new URL(`https://api.jsonbin.io/v3/b/${binId}`);
             const updateOptions = {
@@ -164,21 +236,10 @@ exports.handler = async function (event, context) {
                 return { statusCode: 502, headers, body: JSON.stringify({ error: "Failed to update inventory" }) };
             }
 
-            console.log(`[INVENTORY] Product ${productId}: ${oldStock} → ${newStock}`);
-
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({
-                    success: true,
-                    product: {
-                        id: product.id,
-                        title: product.title,
-                        oldStock,
-                        newStock,
-                        available: product.available
-                    }
-                })
+                body: JSON.stringify(responseBody)
             };
         }
 

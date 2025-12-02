@@ -1,0 +1,411 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Inventory Admin | TorpTCG</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .inventory-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .inventory-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.2);
+        }
+
+        .card-preview {
+            width: 100%;
+            aspect-ratio: 0.716;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .card-code {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+        }
+
+        .stock-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .stock-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stock-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .stock-input {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            margin-bottom: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .stock-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .loading,
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #00b894;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">TORPTCG ADMIN</div>
+        <div class="nav-links"><a href="../index.html">Back to Store</a></div>
+    </nav>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>Card Inventory Management</h1>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Manage stock levels for all Riftbound cards</p>
+            <div class="search-bar"><input type="text" id="search-input"
+                    placeholder="Search by card name, ID, or code..."></div>
+            <div class="filter-tabs">
+                <div class="filter-tab active" data-filter="all">All Cards</div>
+                <div class="filter-tab" data-filter="in-stock">In Stock</div>
+                <div class="filter-tab" data-filter="low-stock">Low Stock</div>
+                <div class="filter-tab" data-filter="out-of-stock">Out of Stock</div>
+                <div class="filter-tab" data-filter="OGN">Origins</div>
+                <div class="filter-tab" data-filter="SFD">Spiritforged</div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-cards">0</div>
+                    <div class="stat-label">Total Cards</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="in-stock-count">0</div>
+                    <div class="stat-label">In Stock</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="low-stock-count">0</div>
+                    <div class="stat-label">Low Stock</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="out-of-stock-count">0</div>
+                    <div class="stat-label">Out of Stock</div>
+                </div>
+            </div>
+        </div>
+        <div id="inventory-container" class="loading">Loading inventory...</div>
+    </div>
+    <div class="save-indicator" id="save-indicator">✓ Stock updated</div>
+    <script src="../cards-script.js"></script>
+    <script>
+        let adminCards = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        async function loadInventory() {
+            const container = document.getElementById('inventory-container');
+            container.innerHTML = '<div class="loading">Loading inventory...</div>';
+            try {
+                adminCards = await fetchCards();
+                console.log('Loaded ' + adminCards.length + ' cards');
+                renderInventory();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                container.innerHTML = '<div class="no-results">Error loading inventory. Please refresh.</div>';
+            }
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('inventory-container');
+            let filtered = adminCards.filter(card => {
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    const matchesName = card.name && card.name.toLowerCase().includes(query);
+                    const matchesId = card.id && card.id.toLowerCase().includes(query);
+                    const matchesCode = card.publicCode && card.publicCode.toLowerCase().includes(query);
+                    if (!matchesName && !matchesId && !matchesCode) return false;
+                }
+                const stock = card.stock !== null && card.stock !== undefined ? card.stock : 0;
+                if (currentFilter === 'in-stock' && stock <= 3) return false;
+                if (currentFilter === 'low-stock' && (stock === 0 || stock > 3)) return false;
+                if (currentFilter === 'out-of-stock' && stock > 0) return false;
+                if (currentFilter === 'OGN' && card.set && card.set.value && card.set.value.id !== 'OGN') return false;
+                if (currentFilter === 'SFD' && card.set && card.set.value && card.set.value.id !== 'SFD') return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-results">No cards found matching your filters.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            container.className = 'inventory-grid';
+
+            filtered.forEach(card => {
+                const div = document.createElement('div');
+                div.className = 'inventory-card';
+                const stock = card.stock !== null && card.stock !== undefined ? card.stock : 0;
+                const imageUrl = card.cardImage && card.cardImage.url ? card.cardImage.url : '';
+                const cardName = card.name || 'Unknown';
+                const cardCode = card.publicCode || card.id;
+                const cardId = card.id;
+
+                div.innerHTML = '<div class="card-preview"><img src="' + imageUrl + '" alt="' + cardName + '" loading="lazy"></div>' +
+                    '<div class="card-name">' + cardName + '</div>' +
+                    '<div class="card-code">' + cardCode + '</div>' +
+                    '<div class="stock-label">Stock Level</div>' +
+                    '<div class="stock-control">' +
+                    '<button class="stock-btn" onclick="adjustStock(\'' + cardId + '\', \'decrement\')">−</button>' +
+                    '<input type="number" class="stock-input" value="' + stock + '" onchange="setStock(\'' + cardId + '\', this.value)" min="0">' +
+                    '<button class="stock-btn" onclick="adjustStock(\'' + cardId + '\', \'increment\')">+</button>' +
+                    '</div>';
+
+                container.appendChild(div);
+            });
+        }
+
+        async function adjustStock(cardId, action) {
+            try {
+                const response = await fetch('/.netlify/functions/card-inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardId: cardId, action: action })
+                });
+                if (response.ok) {
+                    showSaveIndicator();
+                    await loadInventory();
+                }
+            } catch (error) {
+                console.error('Error adjusting stock:', error);
+                alert('Failed to update stock. Please try again.');
+            }
+        }
+
+        async function setStock(cardId, value) {
+            const stock = parseInt(value) || 0;
+            try {
+                const response = await fetch('/.netlify/functions/card-inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardId: cardId, stock: stock, action: 'set' })
+                });
+                if (response.ok) {
+                    showSaveIndicator();
+                    await loadInventory();
+                }
+            } catch (error) {
+                console.error('Error setting stock:', error);
+                alert('Failed to update stock. Please try again.');
+            }
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('save-indicator');
+            indicator.classList.add('show');
+            setTimeout(function () {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        function updateStats() {
+            const total = adminCards.length;
+            const inStock = adminCards.filter(function (c) { return (c.stock || 0) > 3; }).length;
+            const lowStock = adminCards.filter(function (c) {
+                const stock = c.stock || 0;
+                return stock > 0 && stock <= 3;
+            }).length;
+            const outOfStock = adminCards.filter(function (c) { return (c.stock || 0) === 0; }).length;
+
+            document.getElementById('total-cards').textContent = total;
+            document.getElementById('in-stock-count').textContent = inStock;
+            document.getElementById('low-stock-count').textContent = lowStock;
+            document.getElementById('out-of-stock-count').textContent = outOfStock;
+        }
+
+        document.getElementById('search-input').addEventListener('input', function (e) {
+            searchQuery = e.target.value;
+            renderInventory();
+        });
+
+        document.querySelectorAll('.filter-tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.filter-tab').forEach(function (t) {
+                    t.classList.remove('active');
+                });
+                tab.classList.add('active');
+                currentFilter = tab.dataset.filter;
+                renderInventory();
+            });
+        });
+
+        loadInventory();
+    </script>
+</body>
+
+</html>

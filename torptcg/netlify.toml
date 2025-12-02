@@ -10,6 +10,12 @@
   to = "/admin/index.html"
   status = 200
 
+# Ensure dashboard works
+[[redirects]]
+  from = "/dashboard/*"
+  to = "/dashboard/index.html"
+  status = 200
+
 # Redirect everything else to index.html for SPA routing
 [[redirects]]
   from = "/*"

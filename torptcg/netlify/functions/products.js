@@ -2,7 +2,14 @@
 // This function proxies an external JSON store (e.g., jsonbin.io) and returns the product list.
 // Replace EXTERNAL_JSON_URL with the public URL of your JSON store.
 
-const { EXTERNAL_JSON_URL } = require('./config.js');
+let config = {};
+try {
+    config = require('./config.js');
+} catch (e) {
+    // config.js not found, rely on process.env
+}
+
+const EXTERNAL_JSON_URL = process.env.EXTERNAL_JSON_URL || config.EXTERNAL_JSON_URL;
 
 exports.handler = async function (event, context) {
     try {

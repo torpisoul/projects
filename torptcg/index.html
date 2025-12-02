@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TorpTCG | Riftbound Specialists & Custom Prints</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="cards-styles.css">
+    <link rel="stylesheet" href="inventory-styles.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 
 <body>
@@ -40,6 +43,127 @@
             <button class="filter-btn" onclick="filterProducts('prints')">3D Prints</button>
         </div>
 
+        <!-- Out of Stock Toggle -->
+        <div class="stock-toggle-container"
+            style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px 0;">
+            <label class="toggle-switch">
+                <input type="checkbox" id="show-out-of-stock" onchange="toggleOutOfStock()">
+                <span class="toggle-slider"></span>
+            </label>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Show out-of-stock items</span>
+        </div>
+
+        <!-- Show Filters Button (for Singles) -->
+        <div id="show-filters-container" style="display: none; text-align: center; margin: 20px 0;">
+            <button class="btn-secondary" id="toggle-search" onclick="toggleCardSearch()">
+                ▼ Show Filters
+            </button>
+        </div>
+
+        <!-- Card Search Panel (Hidden by default) -->
+        <div id="card-search-panel" style="display: none;">
+            <div class="search-panel">
+                <h3 class="section-title" style="font-size: 1.5rem; margin-bottom: 30px;">Search & Filter Cards</h3>
+
+                <!-- Search Inputs -->
+                <div class="search-grid">
+                    <!-- Name Search -->
+                    <div class="search-field">
+                        <label for="search-name">Card Name</label>
+                        <input type="text" id="search-name" placeholder="Search by name...">
+                    </div>
+
+                    <!-- ID/Public Code Search -->
+                    <div class="search-field">
+                        <label for="search-id">Card ID / Code</label>
+                        <input type="text" id="search-id" placeholder="e.g., 56, ogn-056...">
+                    </div>
+
+                    <!-- Ability Text Search -->
+                    <div class="search-field full-width">
+                        <label for="search-ability">Ability Text</label>
+                        <input type="text" id="search-ability" placeholder="Search ability text...">
+                    </div>
+
+                    <!-- Energy Range -->
+                    <div class="search-field">
+                        <label for="energy-min">Energy (Min - Max)</label>
+                        <div class="range-inputs">
+                            <input type="number" id="energy-min" placeholder="Min" min="0" max="10">
+                            <span>-</span>
+                            <input type="number" id="energy-max" placeholder="Max" min="0" max="10">
+                        </div>
+                    </div>
+
+                    <!-- Might Range -->
+                    <div class="search-field">
+                        <label for="might-min">Might (Min - Max)</label>
+                        <div class="range-inputs">
+                            <input type="number" id="might-min" placeholder="Min" min="0" max="10">
+                            <span>-</span>
+                            <input type="number" id="might-max" placeholder="Max" min="0" max="10">
+                        </div>
+                    </div>
+
+                    <!-- Card Type Dropdown -->
+                    <div class="search-field">
+                        <label for="filter-type">Card Type</label>
+                        <select id="filter-type">
+                            <option value="">All Types</option>
+                            <option value="unit">Unit</option>
+                            <option value="spell">Spell</option>
+                            <option value="gear">Gear</option>
+                            <option value="rune">Rune</option>
+                        </select>
+                    </div>
+
+                    <!-- Rarity Dropdown -->
+                    <div class="search-field">
+                        <label for="filter-rarity">Rarity</label>
+                        <select id="filter-rarity">
+                            <option value="">All Rarities</option>
+                            <option value="common">Common</option>
+                            <option value="uncommon">Uncommon</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="showcase">Showcase</option>
+                        </select>
+                    </div>
+
+                    <!-- Domain Dropdown -->
+                    <div class="search-field">
+                        <label for="filter-domain">Domain</label>
+                        <select id="filter-domain">
+                            <option value="">All Domains</option>
+                            <option value="calm">Calm</option>
+                            <option value="chaos">Chaos</option>
+                            <option value="fury">Fury</option>
+                            <option value="mind">Mind</option>
+                            <option value="body">Body</option>
+                            <option value="order">Order</option>
+                        </select>
+                    </div>
+
+                    <!-- Set Dropdown -->
+                    <div class="search-field">
+                        <label for="filter-set">Card Set</label>
+                        <select id="filter-set">
+                            <option value="">All Sets</option>
+                            <option value="OGN">Origins</option>
+                            <option value="SFD">Spiritforged</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="search-actions">
+                    <button class="btn" id="apply-card-filters">Apply Filters</button>
+                    <button class="btn-secondary" id="reset-card-filters">Reset</button>
+                    <span class="results-count" id="card-results-count">Loading...</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Product Grid -->
         <div class="product-grid" id="product-container">
             <!-- Products injected via script.js -->
@@ -49,19 +173,21 @@
     <!-- SERVICES SECTION -->
     <div class="services-section" id="services">
         <div class="container">
-            <h2 class="section-title">Bespoke 3D Modeling</h2>
+            <h2 class="section-title">Hobbyist 3D Printing</h2>
             <div style="display: flex; flex-wrap: wrap; gap: 50px; align-items: center;">
                 <div style="flex: 1; min-width: 300px;">
-                    <h3 style="color: var(--accent); margin-bottom: 20px; font-size: 1.8rem;">Your Vision, Realized</h3>
+                    <h3 style="color: var(--accent); margin-bottom: 20px; font-size: 1.8rem;">Bring Your Ideas to
+                        Life
+                    </h3>
                     <p style="margin-bottom: 20px; color: var(--text-muted);">
-                        Whether you need a custom commander for your deck, a unique deck box, or a full set of terrain
-                        for your tabletop battles, TorpTCG brings your ideas to life.
+                        Looking for custom deck boxes, dice towers, or unique tabletop accessories? I offer FDM 3D
+                        printing services for fellow hobbyists and TCG enthusiasts.
                     </p>
                     <ul style="margin-bottom: 30px; list-style: none;">
-                        <li style="margin-bottom: 10px;">✨ Custom Sculpted Miniatures</li>
-                        <li style="margin-bottom: 10px;">✨ High-Detail SLA Resin Printing</li>
-                        <li style="margin-bottom: 10px;">✨ Durable FDM Deck Boxes & Dice Towers</li>
-                        <li style="margin-bottom: 10px;">✨ Professional Painting Services Available</li>
+                        <li style="margin-bottom: 10px;">✨ Custom Deck Boxes & Storage</li>
+                        <li style="margin-bottom: 10px;">✨ Dice Towers & Rolling Trays</li>
+                        <li style="margin-bottom: 10px;">✨ Card Holders & Organizers</li>
+                        <li style="margin-bottom: 10px;">✨ Durable FDM Printing</li>
                     </ul>
                     <a href="#contact" class="btn">Request a Quote</a>
                 </div>
@@ -79,30 +205,39 @@
         <h2 class="section-title">Contact Us</h2>
         <div style="max-width: 600px; margin: 0 auto;">
             <p style="text-align: center; margin-bottom: 30px; color: var(--text-muted);">
-                Looking for a specific card or want to commission a model? Drop us a message.
+                Looking for a specific card or want to commission a print? Drop us a message.
             </p>
 
-            <form class="contact-form"
+            <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="contact-form"
                 style="background: var(--bg-card); padding: 40px; border-radius: 16px; border: 1px solid var(--glass-border);">
+
+                <!-- Honeypot field -->
+                <p style="display: none;">
+                    <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+                </p>
+
+                <input type="hidden" name="form-name" value="contact" />
+
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" required placeholder="Your Name">
+                    <input type="text" name="name" required placeholder="Your Name">
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" required placeholder="your@email.com">
+                    <input type="email" name="email" required placeholder="your@email.com">
                 </div>
                 <div class="form-group">
                     <label>Enquiry Type</label>
-                    <select>
+                    <select name="enquiry-type">
                         <option value="stock">Stock Request</option>
+                        <option value="notify">Notify Me (Out of Stock)</option>
                         <option value="commission">3D Print Commission</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Message</label>
-                    <textarea rows="5" placeholder="Tell us what you need..."></textarea>
+                    <textarea name="message" rows="5" placeholder="Tell us what you need..."></textarea>
                 </div>
                 <button type="submit" class="btn" style="width: 100%;">Send Message</button>
             </form>
@@ -120,7 +255,7 @@
     </footer>
 
     <script src="script.js"></script>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="cards-script.js"></script>
     <script>
         if (window.netlifyIdentity) {
             window.netlifyIdentity.on("init", user => {
