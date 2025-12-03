@@ -38,12 +38,18 @@
 .search-field input,
 .search-field select {
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--glass-border);
     border-radius: 8px;
-    color: var(--text-primary);
+    color: #ffffff;
     font-size: 1rem;
     transition: all 0.3s ease;
+}
+
+.search-field select option {
+    background: var(--bg-card);
+    color: #ffffff;
+    padding: 8px;
 }
 
 .search-field input:focus,
@@ -114,7 +120,7 @@
 
 .card-item {
     background: var(--bg-card);
-    border: 1px solid var(--glass-border);
+    border: 2px solid var(--glass-border);
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -126,6 +132,37 @@
     transform: translateY(-8px);
     box-shadow: 0 20px 40px rgba(138, 43, 226, 0.3);
     border-color: var(--accent);
+}
+
+/* Domain-colored border glow on hover */
+.card-item[data-domain="fury"]:hover {
+    border-color: #ff4757;
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.6), 0 20px 40px rgba(255, 71, 87, 0.3);
+}
+
+.card-item[data-domain="calm"]:hover {
+    border-color: #26de81;
+    box-shadow: 0 0 20px rgba(38, 222, 129, 0.6), 0 20px 40px rgba(38, 222, 129, 0.3);
+}
+
+.card-item[data-domain="mind"]:hover {
+    border-color: #45aaf2;
+    box-shadow: 0 0 20px rgba(69, 170, 242, 0.6), 0 20px 40px rgba(69, 170, 242, 0.3);
+}
+
+.card-item[data-domain="body"]:hover {
+    border-color: #fd9644;
+    box-shadow: 0 0 20px rgba(253, 150, 68, 0.6), 0 20px 40px rgba(253, 150, 68, 0.3);
+}
+
+.card-item[data-domain="chaos"]:hover {
+    border-color: #a55eea;
+    box-shadow: 0 0 20px rgba(165, 94, 234, 0.6), 0 20px 40px rgba(165, 94, 234, 0.3);
+}
+
+.card-item[data-domain="order"]:hover {
+    border-color: #fed330;
+    box-shadow: 0 0 20px rgba(254, 211, 48, 0.6), 0 20px 40px rgba(254, 211, 48, 0.3);
 }
 
 .card-item::before {
@@ -288,35 +325,38 @@
     border-bottom: 2px solid var(--accent);
 }
 
-/* Stock Badge on Card */
+/* Stock Badge on Card - Improved Readability */
 .card-stock-badge {
     position: absolute;
     top: 10px;
     left: 10px;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     z-index: 2;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .card-stock-badge.stock-in {
-    background: rgba(0, 184, 148, 0.9);
+    background: rgba(0, 184, 148, 0.95);
     color: white;
-    border: 1px solid #00b894;
+    border: 2px solid #00b894;
 }
 
 .card-stock-badge.stock-low {
-    background: rgba(253, 203, 110, 0.9);
-    color: #221A11;
-    border: 1px solid #fdcb6e;
+    background: rgba(253, 203, 110, 0.95);
+    color: #1a1410;
+    border: 2px solid #fdcb6e;
+    font-weight: 800;
 }
 
 .card-stock-badge.stock-out {
-    background: rgba(255, 118, 117, 0.9);
+    background: rgba(255, 118, 117, 0.95);
     color: white;
-    border: 1px solid #ff7675;
+    border: 2px solid #ff7675;
 }

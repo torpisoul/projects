@@ -11,9 +11,7 @@ let showOutOfStock = false;
 // Fetch products from inventory endpoint
 async function fetchProducts() {
     try {
-        // Add timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        const response = await fetch(`/.netlify/functions/inventory?t=${timestamp}`);
+        const response = await fetch('/.netlify/functions/inventory');
         if (!response.ok) {
             console.warn('Inventory data not available, using fallback data');
             return getFallbackProducts();
@@ -175,7 +173,6 @@ function getRandomItems(array, count) {
 // 4. RENDER FUNCTIONS
 // ============================================
 
-
 // Render products by category sections (initial view)
 async function renderProductsByCategory() {
     const container = document.getElementById('product-container');
@@ -187,6 +184,9 @@ async function renderProductsByCategory() {
 
     const allProducts = await fetchProducts();
 
+    // Filter based on out-of-stock toggle
+    const products = showOutOfStock ? allProducts : allProducts.filter(p => p.stock > 0 || p.preOrder);
+
     const categories = [
         { id: 'singles', name: 'Singles', count: 3 },
         { id: 'sealed', name: 'Sealed Product', count: 3 },
@@ -197,7 +197,7 @@ async function renderProductsByCategory() {
     container.innerHTML = '';
 
     categories.forEach(cat => {
-        const categoryProducts = allProducts.filter(p => p.category === cat.id);
+        const categoryProducts = products.filter(p => p.category === cat.id);
         if (categoryProducts.length === 0) return;
 
         const randomSelection = getRandomItems(categoryProducts, cat.count);
@@ -236,11 +236,12 @@ async function renderProducts(filter = 'all') {
 
     const allProducts = await fetchProducts();
 
-    // Note: Inventory endpoint only returns products with stock > 0
-    // No need to filter by stock here
+    // Filter based on out-of-stock toggle
+    let products = showOutOfStock ? allProducts : allProducts.filter(p => p.stock > 0 || p.preOrder);
+
     const filteredProducts = filter === 'all'
-        ? allProducts
-        : allProducts.filter(p => p.category === filter);
+        ? products
+        : products.filter(p => p.category === filter);
 
     container.innerHTML = '';
 
@@ -263,7 +264,7 @@ function createProductCard(product) {
     const stockStatus = getStockStatus(product);
     const stockClass = getStockClass(product);
     const purchasable = canPurchase(product);
-    const priceDisplay = typeof product.price === 'number' ? `£${product.price.toFixed(2)}` : product.price;
+    const priceDisplay = typeof product.price === 'number' ? `Â£${product.price.toFixed(2)}` : product.price;
 
     // Determine button text and action
     let buttonText = 'Add to Cart';
@@ -278,21 +279,8 @@ function createProductCard(product) {
         buttonAction = `notifyMe('${product.title}')`;
     }
 
-    // Add data-domain attributes for singles cards
-    let domainAttr = '';
-    let domainAttr2 = '';
-    if (product.category === 'singles' && product.domain?.values) {
-        const domains = product.domain.values;
-        if (domains.length > 0 && domains[0]?.id) {
-            domainAttr = ` data-domain="${domains[0].id}"`;
-        }
-        if (domains.length > 1 && domains[1]?.id) {
-            domainAttr2 = ` data-domain-2="${domains[1].id}"`;
-        }
-    }
-
     return `
-        <div class="product-card" data-product-id="${product.id}"${domainAttr}${domainAttr2}>
+        <div class="product-card" data-product-id="${product.id}" data-aos="fade-up">
             <div class="card-image-wrapper">
                 <img src="${product.image}" alt="${product.title}" class="product-image">
                 <span class="category-tag">${getCategoryName(product.category)}</span>
@@ -336,7 +324,7 @@ async function handleAddToCart(productId) {
     }
 
     if (result.success) {
-        alert('✅ Added to cart! Stock updated.');
+        alert('âœ… Added to cart! Stock updated.');
         // Refresh the product display
         const currentFilter = getCurrentFilterCategory();
         if (currentFilter === 'all-categories') {
@@ -346,7 +334,7 @@ async function handleAddToCart(productId) {
         }
     } else {
         if (result.error === 'insufficient_stock') {
-            alert('❌ Sorry, this item is now out of stock. The page will refresh.');
+            alert('âŒ Sorry, this item is now out of stock. The page will refresh.');
             const currentFilter = getCurrentFilterCategory();
             if (currentFilter === 'all-categories') {
                 renderProductsByCategory();
@@ -354,140 +342,9 @@ async function handleAddToCart(productId) {
                 renderProducts(currentFilter);
             }
         } else {
-            alert('❌ Unable to add to cart. Please try again.');
+            alert('âŒ Unable to add to cart. Please try again.');
         }
     }
 }
-
-// ============================================
-// 6. 3D TILT EFFECT
-// ============================================
-
-function initTiltEffect() {
-    const cards = document.querySelectorAll('.product-card');
-
-    cards.forEach(card => {
-        if (!card.dataset.styleId) {
-            const styleId = 'card-style-' + Math.random().toString(36).substr(2, 9);
-            card.dataset.styleId = styleId;
-        }
-
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const xPct = x / rect.width;
-            const yPct = y / rect.height;
-
-            const xRot = (0.5 - yPct) * 15;
-            const yRot = (xPct - 0.5) * 15;
-
-            card.style.transform = `perspective(1000px) rotateX(${xRot}deg) rotateY(${yRot}deg) scale(1.05)`;
-
-            const shineX = (xPct * 100).toFixed(0);
-            const shineY = (yPct * 100).toFixed(0);
-
-            const styleId = card.dataset.styleId;
-            let styleEl = document.getElementById(styleId);
-
-            if (!styleEl) {
-                styleEl = document.createElement('style');
-                styleEl.id = styleId;
-                document.head.appendChild(styleEl);
-            }
-
-            styleEl.textContent = `
-                .product-card[data-style-id="${styleId}"]::before {
-                    background: radial-gradient(
-                        circle at ${shineX}% ${shineY}%,
-                        rgba(255, 255, 255, 0.4) 0%,
-                        rgba(255, 255, 255, 0.2) 20%,
-                        rgba(255, 255, 255, 0.1) 40%,
-                        transparent 60%
-                    ) !important;
-                }
-            `;
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-
-            const styleId = card.dataset.styleId;
-            const styleEl = document.getElementById(styleId);
-            if (styleEl) {
-                styleEl.textContent = '';
-            }
-        });
-    });
 }
 
-function notifyMe(productTitle) {
-    const contactSection = document.getElementById('contact');
-    if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
-
-        setTimeout(() => {
-            const enquirySelect = document.querySelector('select[name="enquiry-type"]');
-            const messageTextarea = document.querySelector('textarea[name="message"]');
-
-            if (enquirySelect) {
-                enquirySelect.value = 'notify';
-            }
-
-            if (messageTextarea) {
-                messageTextarea.value = `Please notify me when "${productTitle}" is back in stock.`;
-            }
-        }, 500);
-    }
-}
-
-// ============================================
-// 7. FILTER AND TOGGLE FUNCTIONS
-// ============================================
-
-function filterProducts(category) {
-    // Update active button state
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    const buttons = document.querySelectorAll('.filter-btn');
-    for (let btn of buttons) {
-        const onclick = btn.getAttribute('onclick');
-        if (onclick && onclick.includes(category)) {
-            btn.classList.add('active');
-            break;
-        }
-    }
-
-    // Render filtered products
-    renderProducts(category);
-}
-
-function toggleOutOfStock() {
-    const checkbox = document.getElementById('show-out-of-stock');
-    showOutOfStock = checkbox.checked;
-
-    // Get current filter
-    const activeBtn = document.querySelector('.filter-btn.active');
-    let currentFilter = 'all';
-
-    if (activeBtn) {
-        const onclick = activeBtn.getAttribute('onclick');
-        if (onclick) {
-            const match = onclick.match(/filterProducts\('(.+?)'\)/);
-            if (match) currentFilter = match[1];
-        }
-    }
-
-    // Re-render with current filter
-    renderProducts(currentFilter);
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('product-container')) {
-        renderProducts('all');
-    }
-});

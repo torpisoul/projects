@@ -1,8 +1,9 @@
-// Netlify Function: inventory
-// Handles both GET (read inventory) and POST (update stock) operations
-// Uses native https module to avoid dependency issues
+// Netlify Function: inventory (Unified Architecture)
+// Fetches from master inventory bin and enriches with product data from multiple bins
 
+const { fetchBin } = require('./bin-fetcher');
 const https = require('https');
+
 let config = {};
 try {
     config = require('./config.js');
@@ -10,43 +11,13 @@ try {
     // config.js not found, rely on process.env
 }
 
-const EXTERNAL_JSON_URL = process.env.EXTERNAL_JSON_URL || config.EXTERNAL_JSON_URL;
 const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || config.JSONBIN_API_KEY;
-
-// Helper function to make HTTP requests
-function makeRequest(url, options, bodyData) {
-    return new Promise((resolve, reject) => {
-        const req = https.request(url, options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => {
-                data += chunk;
-            });
-            res.on('end', () => {
-                resolve({
-                    ok: res.statusCode >= 200 && res.statusCode < 300,
-                    status: res.statusCode,
-                    statusText: res.statusMessage,
-                    data: data
-                });
-            });
-        });
-
-        req.on('error', (e) => {
-            reject(e);
-        });
-
-        if (bodyData) {
-            req.write(bodyData);
-        }
-        req.end();
-    });
-}
+const MASTER_INVENTORY_BIN_ID = process.env.MASTER_INVENTORY_BIN_ID || config.MASTER_INVENTORY_BIN_ID;
 
 exports.handler = async function (event, context) {
-    console.log("Inventory function invoked (https version)");
-    console.log("Method:", event.httpMethod);
+    console.log("[INVENTORY] Function invoked");
+    console.log("[INVENTORY] Method:", event.httpMethod);
 
-    const method = event.httpMethod;
     const headers = {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -54,199 +25,273 @@ exports.handler = async function (event, context) {
         "Access-Control-Allow-Headers": "Content-Type"
     };
 
-    if (method === 'OPTIONS') {
+    if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
+    }
+
+    if (!JSONBIN_API_KEY) {
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: "JSONBIN_API_KEY not configured" })
+        };
+    }
+
+    if (!MASTER_INVENTORY_BIN_ID) {
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: "MASTER_INVENTORY_BIN_ID not configured" })
+        };
     }
 
     try {
         // ============================================
-        // GET: Fetch current inventory
+        // GET: Fetch enriched inventory
         // ============================================
-        if (method === 'GET') {
-            const url = new URL(EXTERNAL_JSON_URL);
-            const options = {
-                method: 'GET',
-                headers: {}
-            };
+        if (event.httpMethod === 'GET') {
+            console.log("[INVENTORY] Fetching master inventory...");
 
-            if (JSONBIN_API_KEY) {
-                options.headers['X-Access-Key'] = JSONBIN_API_KEY;
-            }
+            // 1. Fetch master inventory
+            const masterData = await fetchBin(MASTER_INVENTORY_BIN_ID, JSONBIN_API_KEY);
+            const inventory = masterData.inventory || [];
 
-            const response = await makeRequest(url, options);
+            console.log(`[INVENTORY] Found ${inventory.length} items in master inventory`);
 
-            if (!response.ok) {
-                console.error('Failed to fetch from JSONBin:', response.status);
+            if (inventory.length === 0) {
                 return {
-                    statusCode: 502,
+                    statusCode: 200,
                     headers,
-                    body: JSON.stringify({ error: "Failed to fetch inventory data", details: response.data })
+                    body: JSON.stringify([])
                 };
             }
 
-            const data = JSON.parse(response.data);
-            const inventory = data?.record ?? data;
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify(inventory)
-            };
-        }
-
-        // ============================================
-        // POST: Update stock
-        // ============================================
-        // ============================================
-        // POST: Update inventory (Stock, Add, Edit, Delete)
-        // ============================================
-        if (method === 'POST') {
-            const body = JSON.parse(event.body || '{}');
-            const { action, productId, delta, product: productData } = body;
-
-            // 1. Fetch current inventory
-            const url = new URL(EXTERNAL_JSON_URL);
-            const getOptions = {
-                method: 'GET',
-                headers: {}
-            };
-            if (JSONBIN_API_KEY) {
-                getOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
-            }
-
-            const fetchResponse = await makeRequest(url, getOptions);
-            if (!fetchResponse.ok) {
-                return { statusCode: 502, headers, body: JSON.stringify({ error: "Failed to fetch current inventory" }) };
-            }
-
-            const currentData = JSON.parse(fetchResponse.data);
-            const inventory = currentData?.record ?? currentData;
-
-            // Ensure products array exists
-            if (!inventory.products) {
-                inventory.products = [];
-            }
-
-            let responseBody = {};
-
-            // 2. Handle Actions
-            if (action === 'create') {
-                // Generate ID if not provided
-                const newId = productData.id || 'p' + Date.now();
-                const newProduct = {
-                    ...productData,
-                    id: newId,
-                    stock: parseInt(productData.stock || 0),
-                    price: parseFloat(productData.price || 0),
-                    available: (productData.stock > 0 || productData.preOrder === true)
-                };
-
-                inventory.products.push(newProduct);
-                responseBody = { success: true, message: "Product created", product: newProduct };
-
-            } else if (action === 'update') {
-                const index = inventory.products.findIndex(p => p.id === productData.id);
-                if (index === -1) {
-                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productData.id} not found` }) };
+            // 2. Group items by binId
+            const binGroups = {};
+            inventory.forEach(item => {
+                if (!binGroups[item.binId]) {
+                    binGroups[item.binId] = [];
                 }
+                binGroups[item.binId].push(item);
+            });
 
-                // Merge updates
-                inventory.products[index] = {
-                    ...inventory.products[index],
-                    ...productData,
-                    stock: parseInt(productData.stock),
-                    price: parseFloat(productData.price),
-                    available: (parseInt(productData.stock) > 0 || productData.preOrder === true)
-                };
+            console.log(`[INVENTORY] Grouped into ${Object.keys(binGroups).length} bins`);
 
-                responseBody = { success: true, message: "Product updated", product: inventory.products[index] };
+            // 3. Fetch each bin and merge with inventory data
+            const productPromises = Object.entries(binGroups).map(async ([binId, items]) => {
+                try {
+                    console.log(`[INVENTORY] Fetching bin ${binId} for ${items.length} items`);
+                    const binData = await fetchBin(binId, JSONBIN_API_KEY);
 
-            } else if (action === 'delete') {
-                const idToDelete = productId || productData?.id;
-                const initialLength = inventory.products.length;
-                inventory.products = inventory.products.filter(p => p.id !== idToDelete);
-
-                if (inventory.products.length === initialLength) {
-                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${idToDelete} not found` }) };
-                }
-
-                responseBody = { success: true, message: "Product deleted" };
-
-            } else {
-                // Default: Stock Update (Existing Logic)
-                if (!productId) {
-                    return { statusCode: 400, headers, body: JSON.stringify({ error: "productId is required" }) };
-                }
-
-                const product = inventory.products.find(p => p.id === productId);
-                if (!product) {
-                    return { statusCode: 404, headers, body: JSON.stringify({ error: `Product ${productId} not found` }) };
-                }
-
-                let newStock;
-                if (action === 'set') {
-                    newStock = body.stock;
-                } else {
-                    newStock = (product.stock || 0) + delta;
-                }
-
-                if (newStock < 0) {
-                    return {
-                        statusCode: 409,
-                        headers,
-                        body: JSON.stringify({ error: "Insufficient stock", currentStock: product.stock })
-                    };
-                }
-
-                const oldStock = product.stock;
-                product.stock = newStock;
-                product.available = newStock > 0 || product.preOrder === true;
-
-                console.log(`[INVENTORY] Product ${productId}: ${oldStock} → ${newStock}`);
-
-                responseBody = {
-                    success: true,
-                    product: {
-                        id: product.id,
-                        title: product.title,
-                        oldStock,
-                        newStock,
-                        available: product.available
+                    // Handle different bin structures
+                    let products = [];
+                    if (binData.products && Array.isArray(binData.products)) {
+                        products = binData.products;
+                    } else if (Array.isArray(binData)) {
+                        products = binData;
+                    } else if (binData.page && binData.page.cards && binData.page.cards.items) {
+                        // Card bin structure
+                        products = binData.page.cards.items;
+                    } else if (binData.cards && Array.isArray(binData.cards)) {
+                        products = binData.cards;
                     }
-                };
-            }
 
-            // 3. Save to JSONBin
-            const binId = EXTERNAL_JSON_URL.split('/').pop();
-            const updateUrl = new URL(`https://api.jsonbin.io/v3/b/${binId}`);
-            const updateOptions = {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
+                    // Merge inventory data with product data
+                    return items.map(invItem => {
+                        const product = products.find(p =>
+                            p.id === invItem.productId ||
+                            p.publicCode === invItem.productId
+                        );
+
+                        if (!product) {
+                            console.warn(`[INVENTORY] Product ${invItem.productId} not found in bin ${binId}`);
+                            return null;
+                        }
+
+                        // Normalize properties for frontend
+                        const title = product.title || product.name;
+                        const image = product.image || (product.cardImage ? product.cardImage.url : '');
+                        const price = product.price !== undefined ? product.price : 0; // Cards might not have price yet
+
+                        return {
+                            ...product,
+                            title: title,
+                            image: image,
+                            price: price,
+                            stock: invItem.stock,
+                            category: invItem.category,
+                            available: invItem.stock > 0,
+                            preOrder: invItem.preOrder || false
+                        };
+                    }).filter(p => p !== null);
+
+                } catch (err) {
+                    console.error(`[INVENTORY] Error fetching bin ${binId}:`, err.message);
+                    return [];
                 }
-            };
-            if (JSONBIN_API_KEY) {
-                updateOptions.headers['X-Access-Key'] = JSONBIN_API_KEY;
-            }
+            });
 
-            const updateResponse = await makeRequest(updateUrl, updateOptions, JSON.stringify(inventory));
+            const productArrays = await Promise.all(productPromises);
+            const allProducts = productArrays.flat();
 
-            if (!updateResponse.ok) {
-                console.error('Failed to update JSONBin:', updateResponse.status);
-                return { statusCode: 502, headers, body: JSON.stringify({ error: "Failed to update inventory" }) };
-            }
+            console.log(`[INVENTORY] Returning ${allProducts.length} enriched products`);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify(responseBody)
+                body: JSON.stringify(allProducts)
             };
         }
 
-        return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
+        // ============================================
+        // POST: Update stock in master inventory
+        // ============================================
+        if (event.httpMethod === 'POST') {
+            const body = JSON.parse(event.body || '{}');
+            const { productId, stock, action } = body;
+
+            console.log(`[INVENTORY] Update request: ${action} for ${productId}`);
+
+            // Fetch current master inventory
+            const masterData = await fetchBin(MASTER_INVENTORY_BIN_ID, JSONBIN_API_KEY);
+            const inventory = masterData.inventory || [];
+
+            // Find the item
+            const itemIndex = inventory.findIndex(item => item.productId === productId);
+
+            // Handle 'create' action (Dual Write: Product Bin + Master Inventory)
+            if (action === 'create' && body.product && body.binId) {
+                console.log(`[INVENTORY] Creating new product in bin ${body.binId}`);
+
+                // 1. Fetch target product bin
+                const binData = await fetchBin(body.binId, JSONBIN_API_KEY);
+                let products = [];
+                let isWrapped = false;
+
+                if (binData.products && Array.isArray(binData.products)) {
+                    products = binData.products;
+                    isWrapped = true;
+                } else if (Array.isArray(binData)) {
+                    products = binData;
+                }
+
+                // 2. Add new product to list
+                products.push(body.product);
+
+                // 3. Save updated product list to bin
+                const updateBinUrl = `https://api.jsonbin.io/v3/b/${body.binId}`;
+                await new Promise((resolve, reject) => {
+                    const req = https.request(updateBinUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Access-Key': JSONBIN_API_KEY
+                        }
+                    }, (res) => {
+                        if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+                        else reject(new Error(`Failed to update product bin: ${res.statusCode}`));
+                    });
+                    req.on('error', reject);
+                    req.write(JSON.stringify(isWrapped ? { products } : products));
+                    req.end();
+                });
+
+                // 4. Add to master inventory
+                inventory.push({
+                    productId: body.product.id,
+                    binId: body.binId,
+                    category: body.product.category,
+                    stock: parseInt(body.product.stock),
+                    preOrder: body.product.preOrder || false
+                });
+
+                console.log(`[INVENTORY] Added ${body.product.id} to master inventory`);
+            }
+            // Handle 'set' action (Stock Update Only)
+            else if (action === 'set' && stock !== undefined) {
+                if (itemIndex >= 0) {
+                    // Update existing item
+                    const oldStock = inventory[itemIndex].stock;
+                    inventory[itemIndex].stock = parseInt(stock);
+
+                    // Remove from inventory if stock is 0
+                    if (inventory[itemIndex].stock <= 0) {
+                        inventory.splice(itemIndex, 1);
+                        console.log(`[INVENTORY] Removed ${productId} (stock depleted)`);
+                    } else {
+                        console.log(`[INVENTORY] Updated ${productId}: ${oldStock} → ${stock}`);
+                    }
+                } else if (stock > 0) {
+                    // Add new item (requires binId and category in request)
+                    if (!body.binId || !body.category) {
+                        return {
+                            statusCode: 400,
+                            headers,
+                            body: JSON.stringify({ error: "binId and category required for new items" })
+                        };
+                    }
+
+                    inventory.push({
+                        productId,
+                        binId: body.binId,
+                        category: body.category,
+                        stock: parseInt(stock),
+                        preOrder: body.preOrder || false
+                    });
+
+                    console.log(`[INVENTORY] Added ${productId} with stock ${stock}`);
+                }
+            }
+            // Handle 'delete' action
+            else if (action === 'delete') {
+                if (itemIndex >= 0) {
+                    inventory.splice(itemIndex, 1);
+                    console.log(`[INVENTORY] Deleted ${productId} from master inventory`);
+                }
+
+                // Note: We are NOT deleting from the product bin to be safe, 
+                // but we could if we wanted to be thorough.
+            }
+
+            // Save back to master inventory bin
+            const updateUrl = `https://api.jsonbin.io/v3/b/${MASTER_INVENTORY_BIN_ID}`;
+
+            await new Promise((resolve, reject) => {
+                const req = https.request(updateUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Access-Key': JSONBIN_API_KEY
+                    }
+                }, (res) => {
+                    if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+                    else reject(new Error(`Failed to update master inventory: ${res.statusCode}`));
+                });
+                req.on('error', reject);
+                req.write(JSON.stringify({ inventory }));
+                req.end();
+            });
+
+            // Clear cache for modified bins
+            const { clearCache } = require('./bin-fetcher');
+            clearCache(MASTER_INVENTORY_BIN_ID);
+            if (body.binId) clearCache(body.binId);
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true, message: "Stock updated" })
+            };
+        }
+
+        return {
+            statusCode: 405,
+            headers,
+            body: JSON.stringify({ error: "Method not allowed" })
+        };
 
     } catch (err) {
-        console.error("Error:", err);
+        console.error("[INVENTORY] Error:", err);
         return {
             statusCode: 500,
             headers,

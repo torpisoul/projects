@@ -159,11 +159,16 @@ productForm.addEventListener('submit', async (e) => {
     const action = currentMode === 'add' ? 'create' : 'update';
 
     try {
+        // For new products, we need to specify the target bin
+        // Sealed, accessories, and prints go to the products bin
+        const binId = '692ec5feae596e708f7e5206'; // torptcg-products bin
+
         const res = await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: action,
-                product: productData
+                product: productData,
+                binId: binId // Important: Tell inventory.js where to save details
             })
         });
 
@@ -193,7 +198,8 @@ window.deleteProduct = async (id) => {
             method: 'POST',
             body: JSON.stringify({
                 action: 'delete',
-                productId: id
+                productId: id,
+                binId: '692ec5feae596e708f7e5206' // torptcg-products bin
             })
         });
 

@@ -4,8 +4,8 @@
 const CARD_INVENTORY_BIN_ID = process.env.CARD_INVENTORY_BIN_ID || '692e1a8443b1c97be9d1746c';
 
 exports.handler = async function (event) {
-    // Use env var or fallback to hardcoded key from config
-    const API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$ECN7feFnPRGgVecg0Y.qo.sD4y5GnUixuGmdbKhiP2CaBJlJ1rO7a';
+    // Use env var - no fallback to hardcoded key for security
+    const API_KEY = process.env.JSONBIN_API_KEY;
 
     if (!API_KEY) {
         return {

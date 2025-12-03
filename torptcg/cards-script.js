@@ -231,74 +231,115 @@ function resetFilters() {
  * Update results count display
  */
 /**
- * Get stock status class and label
+ * Get stock status text for display
  */
 function getCardStockStatus(card) {
     const stock = card.stock !== undefined ? card.stock : null;
 
     if (stock === null) {
-        return { class: '', label: '' }; // No stock data
+        return 'In Stock'; // Default when no stock data
     }
 
     if (stock === 0) {
-        return { class: 'stock-out', label: 'Out of Stock' };
-    } else if (stock <= 3) {
-        return { class: 'stock-low', label: `${stock} in stock` };
+        return 'Out of Stock';
+    } else if (stock <= 5) {
+        return `Only ${stock} left!`;
     } else {
-        return { class: 'stock-in', label: 'In Stock' };
+        return 'In Stock';
     }
 }
 
 /**
- * Create a card DOM element
+ * Get stock status CSS class
+ */
+function getCardStockClass(card) {
+    const stock = card.stock !== undefined ? card.stock : null;
+
+    if (stock === null) {
+        return 'stock-in'; // Default when no stock data
+    }
+
+    if (stock === 0) {
+        return 'stock-out';
+    } else if (stock <= 5) {
+        return 'stock-low';
+    } else {
+        return 'stock-in';
+    }
+}
+
+/**
+ * Check if card can be purchased
+ */
+function canPurchaseCard(card) {
+    const stock = card.stock !== undefined ? card.stock : null;
+    // Allow purchase if stock is null (no data) or stock > 0
+    return stock === null || stock > 0;
+}
+
+/**
+ * Create a card DOM element matching the "All" page product card structure
  */
 function createCardElement(card) {
     const div = document.createElement('div');
-    div.className = 'card-item';
+    div.className = 'product-card';
+    div.setAttribute('data-product-id', card.id || card.publicCode);
+
+    // Add domain data attribute for CSS styling
+    const domains = card.domain?.values || [];
+    if (domains.length > 0) {
+        const domainId = domains[0]?.id || '';
+        if (domainId) {
+            div.setAttribute('data-domain', domainId);
+        }
+
+        // For dual-domain cards, add second domain
+        if (domains.length > 1) {
+            const domainId2 = domains[1]?.id || '';
+            if (domainId2) {
+                div.setAttribute('data-domain-2', domainId2);
+            }
+        }
+    }
 
     // Extract data
     const name = card.name || 'Unknown';
     const imageUrl = card.cardImage?.url || '';
-    const cardType = card.cardType?.type?.[0]?.label || 'Unknown';
-    const rarity = card.rarity?.value?.label || '';
-    const domain = card.domain?.values?.[0]?.label || '';
-    const energy = card.energy?.value?.id;
-    const might = card.might?.value?.id;
     const publicCode = card.publicCode || card.id;
-    const stockStatus = getCardStockStatus(card);
 
-    // Build HTML
+    // Stock information
+    const stockStatus = getCardStockStatus(card);
+    const stockClass = getCardStockClass(card);
+    const purchasable = canPurchaseCard(card);
+
+    // Price - default to £0.50 for singles if not specified
+    const price = card.price !== undefined ? card.price : 0.50;
+    const priceDisplay = `£${price.toFixed(2)}`;
+
+    // Button configuration
+    let buttonText = 'Add to Cart';
+    let buttonAction = `handleCardPurchase('${publicCode}', '${name.replace(/'/g, "\\'")}', ${price})`;
+
+    if (!purchasable) {
+        buttonText = 'Notify Me';
+        buttonAction = `notifyMe('${name.replace(/'/g, "\\'")}')`;
+    }
+
+    // Build HTML matching product-card structure from All page
     div.innerHTML = `
-        <div class="card-image-container">
-            <img src="${imageUrl}" alt="${name}" loading="lazy">
-            ${stockStatus.label ? `<div class="card-stock-badge ${stockStatus.class}">${stockStatus.label}</div>` : ''}
-        </div>
-        <div class="card-info">
-            <h3 class="card-name">${name}</h3>
-            <div class="card-meta">
-                ${cardType ? `<span class="card-badge badge-type">${cardType}</span>` : ''}
-                ${rarity ? `<span class="card-badge badge-rarity">${rarity}</span>` : ''}
-                ${domain ? `<span class="card-badge badge-domain">${domain}</span>` : ''}
-            </div>
-            ${(energy !== undefined || might !== undefined) ? `
-                <div class="card-stats">
-                    ${energy !== undefined ? `
-                        <div class="stat-item">
-                            <span class="stat-label">Energy:</span>
-                            <span class="stat-value">${energy}</span>
-                        </div>
-                    ` : ''}
-                    ${might !== undefined ? `
-                        <div class="stat-item">
-                            <span class="stat-label">Might:</span>
-                            <span class="stat-value">${might}</span>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
-            <div class="card-code">${publicCode}</div>
-        </div>
-    `;
+    <div class="card-image-wrapper">
+        <img src="${imageUrl}" alt="${name}" class="product-image" loading="lazy">
+        <span class="category-tag">Single Card</span>
+    </div>
+    <div class="product-details">
+        <div class="stock-badge ${stockClass}">${stockStatus}</div>
+        <h3 class="product-title">${name}</h3>
+        <div class="product-price">${priceDisplay}</div>
+        <button class="btn-add" ${!purchasable ? 'disabled' : ''} onclick="${buttonAction}">
+            ${buttonText}
+        </button>
+    </div>
+`;
 
     return div;
 }
@@ -379,6 +420,8 @@ function renderCards() {
     const container = document.getElementById('product-container');
     if (!container) return;
 
+    container.innerHTML = '';
+    container.classList.remove('product-grid');
     container.classList.add('card-gallery-grid');
 
     if (filteredCards.length === 0) {
@@ -386,19 +429,37 @@ function renderCards() {
         return;
     }
 
-    container.innerHTML = '';
+    // Apply out-of-stock filter based on global showOutOfStock flag
+    let cardsToDisplay = filteredCards;
+    if (!showOutOfStock) {
+        cardsToDisplay = filteredCards.filter(card => {
+            const stock = card.stock !== undefined ? card.stock : null;
+            // Show cards with stock > 0, or cards without stock data
+            return stock === null || stock > 0;
+        });
+    }
 
-    filteredCards.forEach(card => {
+    cardsToDisplay.forEach(card => {
         const cardEl = createCardElement(card);
         container.appendChild(cardEl);
     });
+
+    updateResultsCount(cardsToDisplay.length);
+    
+    // Initialize 3D tilt effect for card gallery
+    setTimeout(() => {
+        if (typeof initTiltEffect === 'function') {
+            initTiltEffect();
+        }
+    }, 100);
 }
 
 // Update updateResultsCount to target card-results-count
-function updateResultsCount() {
+function updateResultsCount(displayCount) {
     const countEl = document.getElementById('card-results-count');
     if (countEl) {
-        countEl.textContent = `Showing ${filteredCards.length} of ${allCards.length} cards`;
+        const count = displayCount !== undefined ? displayCount : filteredCards.length;
+        countEl.textContent = `Showing ${count} of ${allCards.length} cards`;
     }
 }
 

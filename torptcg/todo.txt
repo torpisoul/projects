@@ -1,41 +1,27 @@
-ADD CONFIG.JS TO .GITIGNORE TO PROTECT API KEY - HOW DO I ENSURE LIVE SITE CAN ACCESS THIS?
-
 1. adjust stock page to allow -/+ to be clicked a few times before triggering autosave. When either has been clicked once (when stock level has been adjusted), a new "save" or "update" button - same horizontal level as "Card Inventory Management" but on the opposite side - appears and is how the user triggers the save for any changes.
 
-2. on stock page, when hovering over card, change the border glow colour to match that of the domain of the card (fury = red, calm = green, mind = blue, body = orange, chaos = purple, order = yelow).
+2. Cards that are considered "low stock" should also appear in filters for "in stock".
 
-3. Cards that are considered "low stock" should also appear in filters for "in stock".
+3. expand inventory dashboard page to allow for adding/amending/removing sealed products, accessories and 3d prints. Remove single cards all together from this page as they are handled separately.
 
-4. change styling of filter dropdowns so that text is readable. currently white background with light grey text.
+4. add shopping basket, checkout features - utilise free 3rd party services. This includes selecting a quantity and "add to basket" button on in stock items.
 
-5. if possible, allow two domains to be selected in the filter (even if a second domain dropdown needs to be added - domain 1 / domain 2).
+5. check "contact us" page works with netlify function - change to something else if required.
 
-6. Initial page load shows "All" products selection but even items in stock are not presented. this first page should show all "in stock" and "low stock" items. the out-of-stock toggle is off by default, but when this is toggled on, out-of-stock items should also be displayed.
+6. remove "notify me" from contact page
 
-7. improve readability of stock status (background currently blurred but is often obfuscated by the underlying card art).
+7. Does jsonbin allow for sealed products, accessories and 3d prints - preferably all one file, or not? What's best practice (consider implications on dashboard page).
 
-8. change on hover effect for cards from the increased scaling of size to a dynamic 3d effect that imitates a shiny card reflecting light (effect was present in previous versions of the project but has been lost along the way).
+8. investigate methods to autonomously lookup market values for single cards (cardmarket, ebay, etc.) and make suggested price changes to help maintain competitive pricing. (also present this information to the user?)
 
-9. expand inventory admin page to allow for adding/amending/removing sealed products, accessories and 3d prints.
+9. add user logins and virtual wishlist features. track user spend habits.
 
-10. add placeholder icon for discord server (not yet created, hence placeholder).
+10. add feature to expand card art to full screen (modal?) when clicked.
 
-11. add shopping basket, checkout features - utilise free 3rd party services. This includes selecting a quantity and "add to basket" button on in stock items.
+11. provide method for logged in users to import a decklist from somewhere like piltoverarchive.com to create a shopping list of required items. User can access their lists and check off cards they own, be provided with a quick method for adding in stock cards from their wishlist to their shopping basket, as well as getting alerts for cards in their wishlist that are currently out-of-stock.
 
-12. for items that are out-of-stock, replace the "add to basket" button with a "notify me" button. user can enter email for that specific product or utilise login details to create a virtual wishlist (features not yet implemented) 
+12. price alerts for logged in users - set a desired price for a card, get alerted when that price is met or undercut.
 
-13. check "contact us" page works with netlify function - change to something else if required.
 
-14. remove "notify me" from contact page and instead include it on out-of-stock items. 
-
-15. expand jsonbin inventory to allow for sealed products, accessories and 3d prints - preferably all one file, or not? What's best practice (consider implications on inventory admin page).
-
-16. investigate methods to autonomously lookup market values for single cards (cardmarket, ebay, etc.) and make suggested price changes to help maintain competitive pricing.
-
-17. add user logins and virtual wishlist features. track user spend habits.
-
-18. add feature to expand card art to full screen (modal?) when clicked.
-
-19. provide method for logged in users to import a decklist from somewhere like piltoverarchive.com to create a shopping list of required items. User can access their lists and check off cards they own, be provided with a quick method for adding in stock cards from their wishlist to their shopping basket, as well as getting alerts for cards in their wishlist that are currently out-of-stock.
-
-20. price alerts for logged in users - set a desired price for a card, get alerted when that price is met or undercut.
+Later on:
+1. for items that are out-of-stock, replace the "add to basket" button with a "notify me" button. user can enter email for that specific product or utilise login details to create a virtual wishlist (features not yet implemented) 
