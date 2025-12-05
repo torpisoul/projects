@@ -299,6 +299,9 @@ nav {
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
     position: relative;
     transform-style: preserve-3d;
+    display: flex;
+    flex-direction: column;
+    height: auto;
 }
 
 .product-card:hover {
@@ -332,8 +335,8 @@ nav {
 
 .card-image-wrapper {
     position: relative;
-    height: 27vh;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 /* Card Hover State */
@@ -366,6 +369,10 @@ nav {
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    position: relative;
 }
 
 .stock-badge {
@@ -396,22 +403,29 @@ nav {
     font-size: 1.4rem;
     color: var(--accent);
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 60px;
+    /* Space for absolutely positioned button */
 }
 
 .btn-add {
     width: 100%;
-    margin-top: 14px;
     padding: 10px;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
     border: 1px solid var(--primary);
     color: var(--primary);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 600;
-    position: relative;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
     overflow: hidden;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
 }
 
 .btn-add:hover {
@@ -837,7 +851,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-fury), var(--domain-mind)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-fury), var(--domain-mind));
     background-origin: border-box;
@@ -851,7 +865,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-calm), var(--domain-body)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-calm), var(--domain-body));
     background-origin: border-box;
@@ -864,7 +878,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-fury), var(--domain-body)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-fury), var(--domain-body));
     background-origin: border-box;
@@ -877,7 +891,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-calm), var(--domain-mind)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-calm), var(--domain-mind));
     background-origin: border-box;
@@ -890,7 +904,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-fury), var(--domain-order)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-fury), var(--domain-order));
     background-origin: border-box;
@@ -903,7 +917,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-calm), var(--domain-chaos)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-calm), var(--domain-chaos));
     background-origin: border-box;
@@ -916,7 +930,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-mind), var(--domain-order)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-mind), var(--domain-order));
     background-origin: border-box;
@@ -929,7 +943,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-mind), var(--domain-chaos)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-mind), var(--domain-chaos));
     background-origin: border-box;
@@ -942,7 +956,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-body), var(--domain-order)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-body), var(--domain-order));
     background-origin: border-box;
@@ -955,7 +969,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-body), var(--domain-chaos)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-body), var(--domain-chaos));
     background-origin: border-box;
@@ -968,7 +982,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-calm), var(--domain-order)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-calm), var(--domain-order));
     background-origin: border-box;
@@ -981,7 +995,7 @@ label {
     border: 2px solid transparent;
     background-image:
         /* Top layer */
-        linear-gradient(var(--card-bg, #fff), var(--card-bg, #fff)),
+        linear-gradient(var(--domain-fury), var(--card-bg), var(--domain-chaos), var(--card-bg)),
         /* Bottom layer */
         linear-gradient(to bottom right, var(--domain-fury), var(--domain-chaos));
     background-origin: border-box;
@@ -1222,5 +1236,375 @@ label {
         top: 10px;
         right: 20px;
         font-size: 40px;
+    }
+}
+
+/* ============================================ */
+/* SHOPPING CART SIDEBAR */
+/* ============================================ */
+
+.cart-icon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.cart-icon:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+}
+
+.cart-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-main);
+    transition: fill 0.3s ease;
+}
+
+.cart-icon:hover svg {
+    fill: white;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 2px solid var(--bg-main);
+}
+
+.cart-sidebar {
+    position: fixed;
+    top: 0;
+    right: -450px;
+    width: 450px;
+    height: 100vh;
+    background: var(--bg-card);
+    border-left: 1px solid var(--glass-border);
+    z-index: 10001;
+    transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.cart-sidebar.open {
+    right: 0;
+}
+
+.cart-header {
+    padding: 30px 25px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(255, 140, 66, 0.1), transparent);
+}
+
+.cart-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--accent);
+    font-family: 'Cinzel', serif;
+}
+
+.cart-close {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-close:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.cart-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px 25px;
+}
+
+.cart-items::-webkit-scrollbar {
+    width: 8px;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.cart-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.cart-empty svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.cart-empty p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.cart-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    animation: slideInCart 0.3s ease;
+}
+
+@keyframes slideInCart {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.cart-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--primary);
+}
+
+.cart-item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.cart-item-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cart-item-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0 0 5px 0;
+    line-height: 1.3;
+}
+
+.cart-item-price {
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.cart-item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.qty-btn {
+    background: var(--bg-main);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.qty-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.qty-display {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    min-width: 30px;
+    text-align: center;
+}
+
+.cart-item-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+    align-self: flex-start;
+}
+
+.cart-item-remove:hover {
+    color: #ff7675;
+    transform: scale(1.2);
+}
+
+.cart-footer {
+    padding: 25px;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 0;
+}
+
+.cart-total-label {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.cart-total-amount {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.cart-checkout-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--gradient-main);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cart-checkout-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.cart-checkout-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.cart-checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 140, 66, 0.4);
+}
+
+.cart-checkout-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.cart-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive cart */
+@media (max-width: 768px) {
+    .cart-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+
+    .cart-icon {
+        top: 80px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
     }
 }

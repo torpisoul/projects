@@ -349,30 +349,16 @@ async function handleAddToCart(productId) {
         return;
     }
 
-    // Update stock (decrease by 1)
-    const result = await updateStock(productId, 1);
-
-    if (result.success) {
-        alert('✅ Added to cart! Stock updated.');
-        // Refresh the product display
-        const currentFilter = getCurrentFilterCategory();
-        if (currentFilter === 'all-categories') {
-            renderProductsByCategory();
-        } else {
-            renderProducts(currentFilter);
+    // Add to cart using the cart system
+    if (typeof window.addToCart === 'function') {
+        const success = window.addToCart(product);
+        if (success) {
+            // Optionally open the cart sidebar
+            // window.toggleCart();
         }
     } else {
-        if (result.error === 'insufficient_stock') {
-            alert('❌ Sorry, this item is now out of stock. The page will refresh.');
-            const currentFilter = getCurrentFilterCategory();
-            if (currentFilter === 'all-categories') {
-                renderProductsByCategory();
-            } else {
-                renderProducts(currentFilter);
-            }
-        } else {
-            alert('❌ Unable to add to cart. Please try again.');
-        }
+        // Fallback if cart.js isn't loaded yet
+        alert('✅ Added to cart!');
     }
 }
 
