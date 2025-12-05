@@ -419,7 +419,8 @@
                     <select id="product-category" required>
                         <option value="">Select category...</option>
                         <option value="sealed">Sealed Product</option>
-                        <option value="accessories">Accessory / 3D Print</option>
+                        <option value="accessories">Accessory</option>
+                        <option value="prints">3D Print</option>
                     </select>
                 </div>
 
@@ -473,7 +474,8 @@
                 if (!response.ok) throw new Error('Failed to fetch products');
 
                 const data = await response.json();
-                products = data.filter(p => p.category === 'sealed' || p.category === 'accessories');
+                // Show all categories that we manage
+                products = data.filter(p => ['sealed', 'accessories', 'prints'].includes(p.category));
 
                 console.log(`Loaded ${products.length} products`);
                 renderProducts();
@@ -513,7 +515,11 @@
 
             const stock = product.stock || 0;
             const price = product.price ? `£${product.price.toFixed(2)}` : 'N/A';
-            const categoryName = product.category === 'sealed' ? 'Sealed Product' : 'Accessory / 3D Print';
+            let categoryName = 'Unknown';
+            if (product.category === 'sealed') categoryName = 'Sealed Product';
+            else if (product.category === 'accessories') categoryName = 'Accessory';
+            else if (product.category === 'prints') categoryName = '3D Print';
+
             const madeToOrder = product.madeToOrder || false;
 
             div.innerHTML = `
