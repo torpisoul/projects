@@ -398,6 +398,7 @@
                 }
 
                 const stock = card.stock !== null && card.stock !== undefined ? card.stock : 0;
+                const price = card.price !== null && card.price !== undefined ? card.price : 0;
                 const imageUrl = card.cardImage && card.cardImage.url ? card.cardImage.url : '';
                 const cardName = card.name || 'Unknown';
                 const cardCode = card.publicCode || card.id;
@@ -406,6 +407,10 @@
                 div.innerHTML = '<div class="card-preview"><img src="' + imageUrl + '" alt="' + cardName + '" loading="lazy"></div>' +
                     '<div class="card-name">' + cardName + '</div>' +
                     '<div class="card-code">' + cardCode + '</div>' +
+                    '<div class="stock-label">Price (£)</div>' +
+                    '<div class="stock-control">' +
+                    '<input type="number" class="stock-input" value="' + price.toFixed(2) + '" onchange="setPrice(\'' + cardId + '\', this.value)" min="0" step="0.01" placeholder="0.00">' +
+                    '</div>' +
                     '<div class="stock-label">Stock Level</div>' +
                     '<div class="stock-control">' +
                     '<button class="stock-btn" onclick="adjustStock(\'' + cardId + '\', \'decrement\')">−</button>' +
@@ -517,11 +522,68 @@
             }
         }
 
-        function showSaveIndicator() {
+        async function setPrice(cardId, value, batchMode = false) {
+            const price = parseFloat(value) || 0;
+            const binId = getBinIdForCard(cardId);
+
+            console.log(`[setPrice] Saving ${cardId} with price £${price.toFixed(2)} to binId: ${binId}`);
+
+            if (!binId) {
+                alert('Error: Could not determine bin ID for this card.');
+                return;
+            }
+
+            const payload = {
+                productId: cardId,
+                price: price,
+                action: 'set-price',
+                binId: binId,
+                category: 'singles'
+            };
+
+            console.log('[setPrice] Sending payload:', payload);
+
+            try {
+                const response = await fetch('/.netlify/functions/inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    if (!batchMode) {
+                        showSaveIndicator('✓ Price updated');
+                    }
+                    // Update local state
+                    const card = adminCards.find(c => c.id === cardId);
+                    if (card) card.price = price;
+                    if (!batchMode) {
+                        renderInventory(); // Re-render to update UI
+                    }
+                } else {
+                    const err = await response.json();
+                    if (!batchMode) {
+                        alert('Error: ' + (err.error || 'Failed to update price'));
+                    }
+                    throw new Error(err.error || 'Failed to update price');
+                }
+            } catch (error) {
+                console.error('Error setting price:', error);
+                if (!batchMode) {
+                    alert('Failed to update price. Please try again.');
+                }
+                throw error;
+            }
+        }
+
+        function showSaveIndicator(message) {
             const indicator = document.getElementById('save-indicator');
+            if (message) {
+                indicator.textContent = message;
+            }
             indicator.classList.add('show');
             setTimeout(function () {
                 indicator.classList.remove('show');
+                indicator.textContent = '✓ Stock updated'; // Reset to default
             }, 2000);
         }
 

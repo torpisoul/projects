@@ -57,24 +57,56 @@ exports.handler = async function (event, context) {
 
 async function handleCheckoutCompleted(session) {
     console.log('[STRIPE-WEBHOOK] Checkout completed:', session.id);
+    console.log('[STRIPE-WEBHOOK] Session metadata:', session.metadata);
 
-    // Extract product information from metadata
-    const productId = session.metadata?.productId;
-    const quantity = parseInt(session.metadata?.quantity || '1');
+    // Extract cart items from metadata
+    let cartItems = [];
 
-    if (!productId) {
-        console.warn('[STRIPE-WEBHOOK] No product ID in metadata');
+    if (session.metadata?.cart_items) {
+        try {
+            cartItems = JSON.parse(session.metadata.cart_items);
+            console.log('[STRIPE-WEBHOOK] Cart items:', cartItems);
+        } catch (error) {
+            console.error('[STRIPE-WEBHOOK] Failed to parse cart_items:', error);
+        }
+    }
+
+    // Fallback to old single-product format
+    if (cartItems.length === 0 && session.metadata?.productId) {
+        cartItems = [{
+            id: session.metadata.productId,
+            quantity: parseInt(session.metadata.quantity || '1')
+        }];
+    }
+
+    if (cartItems.length === 0) {
+        console.warn('[STRIPE-WEBHOOK] No items found in metadata');
         return;
     }
 
-    console.log(`[STRIPE-WEBHOOK] Decreasing stock for ${productId} by ${quantity}`);
+    console.log(`[STRIPE-WEBHOOK] Processing ${cartItems.length} items`);
 
-    try {
-        // Call inventory function to decrease stock
-        await updateInventoryStock(productId, -quantity);
-        console.log('[STRIPE-WEBHOOK] Stock updated successfully');
-    } catch (error) {
-        console.error('[STRIPE-WEBHOOK] Failed to update stock:', error);
+    // Update stock for each item
+    const results = [];
+    for (const item of cartItems) {
+        try {
+            console.log(`[STRIPE-WEBHOOK] Decreasing stock for ${item.id} by ${item.quantity}`);
+            await updateInventoryStock(item.id, -item.quantity);
+            results.push({ id: item.id, success: true });
+            console.log(`[STRIPE-WEBHOOK] Stock updated for ${item.id}`);
+        } catch (error) {
+            console.error(`[STRIPE-WEBHOOK] Failed to update stock for ${item.id}:`, error);
+            results.push({ id: item.id, success: false, error: error.message });
+            // Continue with other items even if one fails
+        }
+    }
+
+    console.log('[STRIPE-WEBHOOK] Stock update results:', results);
+
+    // Check if any updates failed
+    const failures = results.filter(r => !r.success);
+    if (failures.length > 0) {
+        console.error('[STRIPE-WEBHOOK] Some stock updates failed:', failures);
         // TODO: Send alert email to admin
     }
 }

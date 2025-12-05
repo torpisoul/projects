@@ -2,7 +2,6 @@ exports.handler = async (event, context) => {
     // Log for debugging
     console.log('[CREATE-CHECKOUT] Function called');
     console.log('[CREATE-CHECKOUT] Stripe key exists:', !!process.env.STRIPE_SECRET_KEY);
-    console.log('[CREATE-CHECKOUT] Stripe key prefix:', process.env.STRIPE_SECRET_KEY?.substring(0, 7));
 
     // Only allow POST
     if (event.httpMethod !== 'POST') {
@@ -20,7 +19,7 @@ exports.handler = async (event, context) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 error: 'Stripe not configured',
-                message: 'STRIPE_SECRET_KEY environment variable is not set. Please add it to your .env file or Netlify environment variables.'
+                message: 'STRIPE_SECRET_KEY environment variable is not set.'
             })
         };
     }
@@ -64,22 +63,22 @@ exports.handler = async (event, context) => {
         const siteUrl = process.env.URL || 'http://localhost:8888';
         console.log('[CREATE-CHECKOUT] Site URL:', siteUrl);
 
-        // Create Stripe Checkout Session with shipping
+        // Create Stripe Checkout Session - UK mainland only
         console.log('[CREATE-CHECKOUT] Creating Stripe session...');
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
 
-            // Collect shipping address
+            // Collect shipping address - UK only
             shipping_address_collection: {
-                allowed_countries: ['GB', 'US', 'CA', 'AU', 'NZ', 'IE', 'FR', 'DE', 'ES', 'IT', 'NL', 'BE', 'SE', 'NO', 'DK', 'FI', 'AT', 'CH', 'PT', 'GR', 'PL', 'CZ', 'HU', 'RO', 'BG', 'HR', 'SK', 'SI', 'LT', 'LV', 'EE', 'CY', 'MT', 'LU'],
+                allowed_countries: ['GB'],
             },
 
             // Collect billing address
             billing_address_collection: 'required',
 
-            // Shipping options
+            // Single UK shipping option
             shipping_options: [
                 {
                     shipping_rate_data: {
@@ -88,7 +87,7 @@ exports.handler = async (event, context) => {
                             amount: 350, // £3.50 in pence
                             currency: 'gbp',
                         },
-                        display_name: 'UK Standard Shipping',
+                        display_name: 'UK Mainland Shipping',
                         delivery_estimate: {
                             minimum: {
                                 unit: 'business_day',
@@ -97,26 +96,6 @@ exports.handler = async (event, context) => {
                             maximum: {
                                 unit: 'business_day',
                                 value: 5,
-                            },
-                        },
-                    },
-                },
-                {
-                    shipping_rate_data: {
-                        type: 'fixed_amount',
-                        fixed_amount: {
-                            amount: 0, // Placeholder - will be invoiced separately
-                            currency: 'gbp',
-                        },
-                        display_name: 'International Shipping (Cost TBD)',
-                        delivery_estimate: {
-                            minimum: {
-                                unit: 'business_day',
-                                value: 7,
-                            },
-                            maximum: {
-                                unit: 'business_day',
-                                value: 14,
                             },
                         },
                     },
@@ -142,7 +121,7 @@ exports.handler = async (event, context) => {
             // Add custom text for shipping note
             custom_text: {
                 shipping_address: {
-                    message: 'Standard shipping (£3.50) is for mainland UK only. International orders will incur additional shipping costs which will be calculated and invoiced separately at the buyer\'s expense.',
+                    message: 'We currently ship to UK mainland addresses only. Shipping cost is £3.50.',
                 },
             },
         });
@@ -163,7 +142,6 @@ exports.handler = async (event, context) => {
     } catch (error) {
         console.error('[CREATE-CHECKOUT] Error:', error.message);
         console.error('[CREATE-CHECKOUT] Error type:', error.type);
-        console.error('[CREATE-CHECKOUT] Error stack:', error.stack);
         return {
             statusCode: 500,
             headers: { 'Content-Type': 'application/json' },

@@ -251,6 +251,95 @@ exports.handler = async function (event, context) {
                     console.log(`[INVENTORY] Added ${productId} with stock ${stock}`);
                 }
             }
+            // Handle 'set-price' action (Update price in product bin)
+            else if (action === 'set-price' && body.price !== undefined && body.binId) {
+                console.log(`[INVENTORY] Setting price for ${productId} to £${body.price} in bin ${body.binId}`);
+
+                // Fetch the product bin
+                const binData = await fetchBin(body.binId, JSONBIN_API_KEY);
+                let products = [];
+                let isCardBin = false;
+
+                // Handle different bin structures
+                if (binData.page && binData.page.cards && binData.page.cards.items) {
+                    // Card bin structure
+                    products = binData.page.cards.items;
+                    isCardBin = true;
+                } else if (binData.cards && Array.isArray(binData.cards)) {
+                    products = binData.cards;
+                    isCardBin = true;
+                } else if (binData.products && Array.isArray(binData.products)) {
+                    products = binData.products;
+                } else if (Array.isArray(binData)) {
+                    products = binData;
+                }
+
+                // Find and update the product
+                const productIndex = products.findIndex(p =>
+                    p.id === productId || p.publicCode === productId
+                );
+
+                if (productIndex >= 0) {
+                    products[productIndex].price = parseFloat(body.price);
+                    console.log(`[INVENTORY] Updated price for ${productId} to £${body.price}`);
+
+                    // Save back to the product bin
+                    const updateBinUrl = `https://api.jsonbin.io/v3/b/${body.binId}`;
+
+                    // Reconstruct the bin data with updated products
+                    let updatedBinData;
+                    if (isCardBin && binData.page) {
+                        updatedBinData = {
+                            ...binData,
+                            page: {
+                                ...binData.page,
+                                cards: {
+                                    ...binData.page.cards,
+                                    items: products
+                                }
+                            }
+                        };
+                    } else if (isCardBin && binData.cards) {
+                        updatedBinData = { ...binData, cards: products };
+                    } else if (binData.products) {
+                        updatedBinData = { ...binData, products };
+                    } else {
+                        updatedBinData = products;
+                    }
+
+                    await new Promise((resolve, reject) => {
+                        const req = https.request(updateBinUrl, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Access-Key': JSONBIN_API_KEY
+                            }
+                        }, (res) => {
+                            if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+                            else reject(new Error(`Failed to update product bin: ${res.statusCode}`));
+                        });
+                        req.on('error', reject);
+                        req.write(JSON.stringify(updatedBinData));
+                        req.end();
+                    });
+
+                    // Clear cache for the bin
+                    const { clearCache } = require('./bin-fetcher');
+                    clearCache(body.binId);
+
+                    return {
+                        statusCode: 200,
+                        headers,
+                        body: JSON.stringify({ success: true, message: "Price updated" })
+                    };
+                } else {
+                    return {
+                        statusCode: 404,
+                        headers,
+                        body: JSON.stringify({ error: `Product ${productId} not found in bin ${body.binId}` })
+                    };
+                }
+            }
             // Handle 'delete' action
             else if (action === 'delete') {
                 if (itemIndex >= 0) {
