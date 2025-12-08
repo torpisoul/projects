@@ -33,6 +33,17 @@ test('Verify Legend and Signature Spell Filters and Stock Logic', async ({ page 
   // Wait for filtering
   await page.waitForTimeout(2000);
 
+  // Wait for results count to update from "Loading..."
+  await expect(page.locator('#card-results-count')).not.toHaveText('Loading...', { timeout: 10000 });
+
+  // Verify the count reflects the hidden items (should be 0 if all legends are OOS)
+  const countText = await page.locator('#card-results-count').textContent();
+  const visibleCards = await page.locator('.product-card:visible').count();
+
+  console.log(`Count text: "${countText}", Visible cards: ${visibleCards}`);
+
+  expect(countText).toContain(`Showing ${visibleCards}`);
+
   // Since "Battle Mistress" is not in inventory (verified via grep), it should be HIDDEN by default
   // because our new logic sets stock to 0 for missing Legends.
   let battleMistress = page.locator('.product-card:has-text("Battle Mistress")');

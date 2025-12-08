@@ -235,7 +235,6 @@ function applyFilters() {
     });
 
     renderCards();
-    updateResultsCount();
 }
 
 /**
@@ -258,7 +257,6 @@ function resetFilters() {
 
     filteredCards = [...allCards];
     renderCards();
-    updateResultsCount();
 }
 
 /**
@@ -400,7 +398,6 @@ async function initCardSearch() {
 
     // Render initial cards
     renderCards();
-    updateResultsCount();
 
     // Cache all card images in the background
     const imageUrls = allCards
