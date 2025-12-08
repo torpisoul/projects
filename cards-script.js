@@ -32,31 +32,22 @@ async function fetchCards() {
 
         // Fetch inventory and merge
         try {
-            const inventoryResponse = await fetch('/.netlify/functions/card-inventory');
+            const inventoryResponse = await fetch('/.netlify/functions/inventory');
             if (inventoryResponse.ok) {
                 const inventory = await inventoryResponse.json();
 
                 // Create inventory map
                 const inventoryMap = {};
                 inventory.forEach(item => {
-                    inventoryMap[item.cardId] = item.stock;
+                    if (item.id) {
+                        inventoryMap[item.id] = item.stock;
+                    }
                 });
 
                 // Merge stock data into cards
                 cards = cards.map(card => {
-                    let stock = inventoryMap[card.id] !== undefined ? inventoryMap[card.id] : null;
-
-                    // Fix: Dual-type cards (Legend, Signature) default to 0 stock if missing from inventory
-                    // This prevents them from showing as "In Stock" when they should be hidden
-                    const typeId = card.cardType?.type?.[0]?.id;
-                    const superTypes = (card.cardType?.superType || []).map(st => st.id);
-
-                    const isLegend = typeId === 'legend';
-                    const isSignature = typeId === 'spell' && superTypes.includes('signature');
-
-                    if (stock === null && (isLegend || isSignature)) {
-                        stock = 0;
-                    }
+                    // Default to 0 stock if missing from inventory (aligns with Master Inventory behavior where 0-stock items are removed)
+                    let stock = inventoryMap[card.id] !== undefined ? inventoryMap[card.id] : 0;
 
                     return {
                         ...card,
@@ -266,11 +257,7 @@ function resetFilters() {
  * Get stock status text for display
  */
 function getCardStockStatus(card) {
-    const stock = card.stock !== undefined ? card.stock : null;
-
-    if (stock === null) {
-        return 'Out of Stock'; // Default when no stock data
-    }
+    const stock = card.stock !== undefined ? card.stock : 0;
 
     if (stock === 0) {
         return 'Out of Stock';
@@ -285,11 +272,7 @@ function getCardStockStatus(card) {
  * Get stock status CSS class
  */
 function getCardStockClass(card) {
-    const stock = card.stock !== undefined ? card.stock : null;
-
-    if (stock === null) {
-        return 'stock-out'; // Default when no stock data
-    }
+    const stock = card.stock !== undefined ? card.stock : 0;
 
     if (stock === 0) {
         return 'stock-out';
@@ -304,9 +287,8 @@ function getCardStockClass(card) {
  * Check if card can be purchased
  */
 function canPurchaseCard(card) {
-    const stock = card.stock !== undefined ? card.stock : null;
-    // Allow purchase if stock is null (no data) or stock > 0
-    return stock !== null && stock > 0;
+    const stock = card.stock !== undefined ? card.stock : 0;
+    return stock > 0;
 }
 
 /**
@@ -465,9 +447,8 @@ function renderCards() {
     let cardsToDisplay = filteredCards;
     if (!showOutOfStock) {
         cardsToDisplay = filteredCards.filter(card => {
-            const stock = card.stock !== undefined ? card.stock : null;
-            // Show cards with stock > 0, or cards without stock data
-            return stock === null || stock > 0;
+            const stock = card.stock !== undefined ? card.stock : 0;
+            return stock > 0;
         });
     }
 
