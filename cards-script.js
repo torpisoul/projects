@@ -43,10 +43,26 @@ async function fetchCards() {
                 });
 
                 // Merge stock data into cards
-                cards = cards.map(card => ({
-                    ...card,
-                    stock: inventoryMap[card.id] !== undefined ? inventoryMap[card.id] : null
-                }));
+                cards = cards.map(card => {
+                    let stock = inventoryMap[card.id] !== undefined ? inventoryMap[card.id] : null;
+
+                    // Fix: Dual-type cards (Legend, Signature) default to 0 stock if missing from inventory
+                    // This prevents them from showing as "In Stock" when they should be hidden
+                    const typeId = card.cardType?.type?.[0]?.id;
+                    const superTypes = (card.cardType?.superType || []).map(st => st.id);
+
+                    const isLegend = typeId === 'legend';
+                    const isSignature = typeId === 'spell' && superTypes.includes('signature');
+
+                    if (stock === null && (isLegend || isSignature)) {
+                        stock = 0;
+                    }
+
+                    return {
+                        ...card,
+                        stock
+                    };
+                });
             }
         } catch (invError) {
             console.warn('Could not fetch inventory, cards will show without stock:', invError);
@@ -183,8 +199,17 @@ function applyFilters() {
 
         // Type filter
         if (filters.type) {
-            const cardType = card.cardType?.type?.[0]?.id;
-            if (cardType !== filters.type) return false;
+            const typeId = card.cardType?.type?.[0]?.id;
+            const superTypes = (card.cardType?.superType || []).map(st => st.id);
+
+            if (filters.type === 'legend') {
+                if (typeId !== 'legend') return false;
+            } else if (filters.type === 'signature') {
+                // Signature Spells are Spells with Signature supertype
+                if (typeId !== 'spell' || !superTypes.includes('signature')) return false;
+            } else {
+                if (typeId !== filters.type) return false;
+            }
         }
 
         // Rarity filter
