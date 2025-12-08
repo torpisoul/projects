@@ -10,6 +10,64 @@ const TEST_CARD_NAME = 'Test Card for Automation';
 
 test.describe('Inventory Management - Add Card', () => {
     test('should add a new card to inventory and display on product page', async ({ page }) => {
+        // Mock JSONBin API calls instead of Netlify functions
+        await page.route('https://api.jsonbin.io/v3/b/*', async route => {
+            const url = route.request().url();
+
+            // Mock Master Inventory
+            if (url.includes('692ed2dbae596e708f7e68f9')) {
+                // If PUT (Update)
+                if (route.request().method() === 'PUT') {
+                     await route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify({
+                             record: { inventory: [] }, // Mock response
+                             metadata: { parentId: '123' }
+                        })
+                    });
+                    return;
+                }
+
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        record: {
+                            inventory: [
+                                { productId: TEST_CARD_ID, stock: 0, binId: 'mock-bin' }
+                            ]
+                        }
+                    })
+                });
+                return;
+            }
+
+            // Mock Product/Card Bins
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    record: {
+                        page: {
+                            cards: {
+                                items: [
+                                    {
+                                        id: TEST_CARD_ID,
+                                        name: TEST_CARD_NAME,
+                                        publicCode: 'OGN-001',
+                                        stock: 0,
+                                        cardImage: { url: 'https://via.placeholder.com/150' },
+                                        category: 'singles'
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                })
+            });
+        });
+
         // Step 1: Go to card inventory admin page
         await page.goto('/admin/card-inventory.html');
         await page.waitForLoadState('networkidle');

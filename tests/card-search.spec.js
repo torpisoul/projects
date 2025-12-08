@@ -7,6 +7,65 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Card Search Functionality', () => {
     test.beforeEach(async ({ page }) => {
+        // Mock JSONBin API calls
+        await page.route('https://api.jsonbin.io/v3/b/*', async route => {
+            const url = route.request().url();
+
+            // Mock Master Inventory
+            if (url.includes('692ed2dbae596e708f7e68f9')) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        record: {
+                            inventory: [
+                                { productId: 'test-lee', stock: 5, binId: 'mock-bin' },
+                                { productId: 'test-other', stock: 2, binId: 'mock-bin' }
+                            ]
+                        }
+                    })
+                });
+                return;
+            }
+
+            // Mock Product/Card Bins
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    record: {
+                        page: {
+                            cards: {
+                                items: [
+                                    {
+                                        id: 'test-lee',
+                                        name: 'Lee, The Test Card',
+                                        publicCode: 'TEST-001',
+                                        stock: 5,
+                                        cardImage: { url: 'https://via.placeholder.com/150' },
+                                        category: 'singles',
+                                        price: 10.00,
+                                        rarity: { value: { id: 'rare' } },
+                                        cardType: { type: [{ id: 'unit' }] },
+                                        domain: { values: [{ id: 'fury' }] }
+                                    },
+                                    {
+                                        id: 'test-other',
+                                        name: 'Other Card',
+                                        publicCode: 'TEST-002',
+                                        stock: 2,
+                                        cardImage: { url: 'https://via.placeholder.com/150' },
+                                        category: 'singles',
+                                        price: 5.00
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                })
+            });
+        });
+
         await page.goto('/');
         await page.click('button:has-text("Singles")');
         await page.waitForSelector('.product-card', { timeout: 10000 });
@@ -96,6 +155,65 @@ test.describe('Card Search Functionality', () => {
 
 test.describe('Advanced Filters', () => {
     test.beforeEach(async ({ page }) => {
+        // Mock JSONBin API calls
+        await page.route('https://api.jsonbin.io/v3/b/*', async route => {
+            const url = route.request().url();
+
+            // Mock Master Inventory
+            if (url.includes('692ed2dbae596e708f7e68f9')) {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        record: {
+                            inventory: [
+                                { productId: 'test-lee', stock: 5, binId: 'mock-bin' },
+                                { productId: 'test-other', stock: 2, binId: 'mock-bin' }
+                            ]
+                        }
+                    })
+                });
+                return;
+            }
+
+            // Mock Product/Card Bins
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    record: {
+                        page: {
+                            cards: {
+                                items: [
+                                    {
+                                        id: 'test-lee',
+                                        name: 'Lee, The Test Card',
+                                        publicCode: 'TEST-001',
+                                        stock: 5,
+                                        cardImage: { url: 'https://via.placeholder.com/150' },
+                                        category: 'singles',
+                                        price: 10.00,
+                                        rarity: { value: { id: 'rare' } },
+                                        cardType: { type: [{ id: 'unit' }] },
+                                        domain: { values: [{ id: 'fury' }] }
+                                    },
+                                    {
+                                        id: 'test-other',
+                                        name: 'Other Card',
+                                        publicCode: 'TEST-002',
+                                        stock: 2,
+                                        cardImage: { url: 'https://via.placeholder.com/150' },
+                                        category: 'singles',
+                                        price: 5.00
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                })
+            });
+        });
+
         await page.goto('/');
         await page.click('button:has-text("Singles")');
         await page.waitForSelector('.product-card', { timeout: 10000 });

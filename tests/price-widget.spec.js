@@ -13,7 +13,8 @@ test.describe('Admin Page - Price Trends Widget', () => {
             const url = route.request().url();
 
             // Mock Master Inventory
-            if (url.includes(window.TorptcgConfig?.MASTER_INVENTORY_BIN_ID || '692ed2dbae596e708f7e68f9')) {
+            // Hardcode ID here as window is not available in Node.js test runner context
+            if (url.includes('692ed2dbae596e708f7e68f9')) {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',

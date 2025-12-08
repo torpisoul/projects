@@ -1,6 +1,62 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify Legend and Signature Spell Filters and Stock Logic', async ({ page }) => {
+  // Mock JSONBin API calls
+  await page.route('https://api.jsonbin.io/v3/b/*', async route => {
+      const url = route.request().url();
+
+      // Mock Master Inventory
+      if (url.includes('692ed2dbae596e708f7e68f9')) {
+          await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify({
+                  record: {
+                      inventory: [
+                          { productId: 'bullet-time', stock: 5, binId: 'mock-bin' }
+                          // Note: battle-mistress is NOT in inventory, so it defaults to 0 stock
+                      ]
+                  }
+              })
+          });
+          return;
+      }
+
+      // Mock Product/Card Bins
+      await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+              record: {
+                  page: {
+                      cards: {
+                          items: [
+                              {
+                                  id: 'battle-mistress',
+                                  name: 'Battle Mistress',
+                                  publicCode: 'OGN-001',
+                                  stock: 0,
+                                  cardImage: { url: 'https://via.placeholder.com/150' },
+                                  category: 'singles',
+                                  cardType: { type: [{ id: 'legend' }] }
+                              },
+                              {
+                                  id: 'bullet-time',
+                                  name: 'Bullet Time',
+                                  publicCode: 'OGN-002',
+                                  stock: 5,
+                                  cardImage: { url: 'https://via.placeholder.com/150' },
+                                  category: 'singles',
+                                  cardType: { type: [{ id: 'spell' }], superType: [{ id: 'signature' }] }
+                              }
+                          ]
+                      }
+                  }
+              }
+          })
+      });
+  });
+
   // Go to home page
   await page.goto('/');
 
