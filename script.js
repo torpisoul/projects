@@ -815,7 +815,7 @@ function initCardModalHandlers() {
         if (imageWrapper) {
             // Make image clickable
             imageWrapper.style.cursor = 'pointer';
-            imageWrapper.title = 'Click to view details';
+            imageWrapper.title = 'Drag me to the cart, or click for more details';
 
             imageWrapper.addEventListener('click', () => {
                 // Get product data from the card
