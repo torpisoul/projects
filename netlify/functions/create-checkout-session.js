@@ -1,10 +1,29 @@
 // netlify/functions/create-checkout-session.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const inventoryFunction = require('./inventory');
+
+// Initialize Stripe conditionally
+let stripe;
+try {
+    if (process.env.STRIPE_SECRET_KEY) {
+        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    } else {
+        console.warn('⚠️ STRIPE_SECRET_KEY is missing. Checkout will fail.');
+    }
+} catch (err) {
+    console.error('Failed to initialize Stripe:', err);
+}
 
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
+    }
+
+    if (!stripe) {
+        console.error('Stripe is not initialized. Check STRIPE_SECRET_KEY.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Payment system not configured (Missing Stripe Key)' })
+        };
     }
 
     try {
@@ -15,19 +34,13 @@ exports.handler = async function(event, context) {
         }
 
         // 1. Validate Stock and Price
-        // We need to fetch current inventory.
-        // Reusing inventory function logic by mocking a request?
-        // Or better, we should extract the "read inventory" logic.
-        // For now, let's call the inventory endpoint via internal invocation or duplicating logic?
-        // Since we are in the same environment, we can require the file if it exports the reading logic.
-        // Looking at inventory.js, it seems it interacts with JSONBin.
-
-        // Let's assume we can fetch all products first.
         const mockEvent = { httpMethod: 'GET', queryStringParameters: {} };
+        // We need to pass the context, but also ensure environment variables are available if inventory relies on them
         const inventoryResponse = await inventoryFunction.handler(mockEvent, context);
 
         if (inventoryResponse.statusCode !== 200) {
-            throw new Error('Could not fetch inventory for validation');
+            console.error('Inventory fetch failed:', inventoryResponse.body);
+            throw new Error(`Could not fetch inventory for validation: ${inventoryResponse.statusCode}`);
         }
 
         const inventoryData = JSON.parse(inventoryResponse.body);
@@ -48,9 +61,6 @@ exports.handler = async function(event, context) {
             }
 
             // Verify price (security: always use server-side price)
-            // Note: Floating point comparison might be tricky, but usually exact matches for prices.
-            // cartItem.price comes from client, we ignore it and use product.price
-
             lineItems.push({
                 price_data: {
                     currency: 'gbp',
@@ -79,7 +89,6 @@ exports.handler = async function(event, context) {
             metadata: {
                 // Store simplified cart in metadata for webhook
                 // Warning: Metadata has 500 char limit.
-                // We'll store a compact JSON string.
                 cart_items: JSON.stringify(metadataItems).substring(0, 500)
             }
         });
