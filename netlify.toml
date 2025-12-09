@@ -16,7 +16,6 @@
     MIND_BIN_ID = "692da2d543b1c97be9d0981c"
     BODY_BIN_ID = "692da2d6d0ea881f400ba004"
     DUAL_BIN_ID = "692da2d7d0ea881f400ba009"
-    STRIPE_SECRET_KEY = "sk_test_placeholder_replace_me"
 
 # Ensure admin panel works
 [[redirects]]
