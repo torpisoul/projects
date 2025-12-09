@@ -16,10 +16,41 @@
     <nav>
         <div class="logo">TorpTCG</div>
         <div class="nav-links">
-            <a href="#products">Shop</a>
-            <a href="#services">Bespoke 3D Models</a>
-            <a href="#contact">Contact</a>
+            <a href="#products">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                Shop
+            </a>
+            <a href="#services">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                    <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                    </path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Bespoke 3D Models
+            </a>
+            <a href="#contact">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Contact
+            </a>
             <a href="javascript:void(0)" onclick="openBasketModal()" class="basket-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                    <path
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z">
+                    </path>
+                </svg>
                 Basket
                 <span id="basket-count" class="basket-badge" style="display: none;">0</span>
             </a>
@@ -218,10 +249,12 @@
             <h2 class="section-title">Hobbyist 3D Printing</h2>
             <div style="display: flex; flex-wrap: wrap; gap: 50px; align-items: center;">
                 <div style="flex: 1; min-width: 300px;">
-                    <h3 style="color: var(--accent); margin-bottom: 20px; font-size: 1.8rem;">Featured Designer: Torpisoul
+                    <h3 style="color: var(--accent); margin-bottom: 20px; font-size: 1.8rem;">Featured Designer:
+                        Torpisoul
                     </h3>
                     <p style="margin-bottom: 20px; color: var(--text-muted);">
-                        New to 3D printing and modelling, but passionate about bringing ideas to life. Software tester by day, gamer by night. Specializing in PC gaming accessories and TCGs (Riftbound).
+                        New to 3D printing and modelling, but passionate about bringing ideas to life. Software tester
+                        by day, gamer by night. Specializing in PC gaming accessories and TCGs (Riftbound).
                     </p>
                     <ul style="margin-bottom: 30px; list-style: none;">
                         <li style="margin-bottom: 10px;">✨ Three-Dimensional Noughts & Crosses</li>
@@ -248,7 +281,8 @@
                 Looking for a specific card or want to commission a print? Drop us a message.
             </p>
 
-            <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html" class="contact-form"
+            <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html"
+                class="contact-form"
                 style="background: var(--bg-card); padding: 40px; border-radius: 16px; border: 1px solid var(--glass-border);">
 
                 <!-- Honeypot field -->
@@ -299,10 +333,12 @@
 
     <!-- Basket Modal -->
     <div id="basket-modal" class="card-modal" onclick="closeBasketModal(event)">
-        <div class="basket-content" style="background: var(--bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--glass-border); width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="basket-content"
+            style="background: var(--bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--glass-border); width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="font-family: 'Cinzel', serif; color: var(--primary); margin: 0;">Shopping Basket</h2>
-                <span class="close-basket" onclick="closeBasketModal(event)" style="font-size: 30px; cursor: pointer;">&times;</span>
+                <span class="close-basket" onclick="closeBasketModal(event)"
+                    style="font-size: 30px; cursor: pointer;">&times;</span>
             </div>
 
             <div id="basket-items" style="flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px;">
@@ -310,13 +346,16 @@
             </div>
 
             <div id="basket-footer" style="border-top: 1px solid var(--glass-border); padding-top: 20px;">
-                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 20px; font-weight: bold;">
+                <div
+                    style="display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 20px; font-weight: bold;">
                     <span>Total:</span>
                     <span id="basket-subtotal">£0.00</span>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button onclick="closeBasketModal(event)" class="btn-secondary" style="flex: 1;">Keep Shopping</button>
-                    <button id="checkout-btn" onclick="handleCheckout()" class="btn" style="flex: 1;">Checkout via Stripe</button>
+                    <button onclick="closeBasketModal(event)" class="btn-secondary" style="flex: 1;">Keep
+                        Shopping</button>
+                    <button id="checkout-btn" onclick="handleCheckout()" class="btn" style="flex: 1;">Checkout via
+                        Stripe</button>
                 </div>
             </div>
         </div>

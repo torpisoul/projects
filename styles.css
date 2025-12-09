@@ -105,18 +105,36 @@ nav {
 
 .nav-links {
     display: flex;
-    gap: 30px;
+    gap: 10px;
+    align-items: center;
 }
 
 .nav-links a {
     color: var(--text-muted);
     text-decoration: none;
-    transition: color 0.3s;
+    transition: all 0.3s ease;
     font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.nav-links a svg {
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 .nav-links a:hover {
-    color: var(--accent);
+    color: var(--primary);
+    background: var(--glass-bg);
+    transform: scale(1.05);
+}
+
+.nav-links a:hover svg {
+    transform: scale(1.1);
 }
 
 /* --- HERO SECTION --- */
@@ -406,7 +424,7 @@ nav {
     z-index: 10002;
     opacity: 0;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 .toast-notification.show {
