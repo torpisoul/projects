@@ -79,18 +79,34 @@ nav {
 
 .nav-links {
     display: flex;
-    gap: 30px;
+    gap: 10px;
+    align-items: center;
 }
 
 .nav-links a {
     color: var(--text-muted);
     text-decoration: none;
-    transition: color 0.3s;
+    transition: all 0.3s ease;
     font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-links a:hover {
-    color: var(--accent);
+    color: var(--primary);
+    background: var(--glass-bg);
+    transform: scale(1.05);
+}
+
+.nav-links a svg {
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover svg {
+    transform: scale(1.1);
 }
 
 /* Shopping Cart Icon */
@@ -425,8 +441,11 @@ nav {
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
     position: relative;
     transform-style: preserve-3d;
-    display: flex;
-    flex-direction: column;
+    cursor: grab;
+}
+
+.product-card:active {
+    cursor: grabbing;
 }
 
 .product-card:hover {
@@ -476,47 +495,24 @@ nav {
     transition: transform 0.3s ease;
 }
 
-.tag-group {
+.category-tag {
     position: absolute;
-    top: 11rem;
-    left: 0.5rem;
+    top: 15px;
+    right: 15px;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
+    padding: 5px 12px;
     border-radius: 20px;
-    border: 1px solid var(--glass-border);
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-}
-
-.category-tag {
-    position: static;
-    background: none;
-    border: none;
-    padding: 3px 8px;
     font-size: 0.75rem;
     text-transform: uppercase;
-}
-
-.product-price-tag {
-    padding: 3px 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--accent);
-    background: rgba(255, 255, 255, 0.1);
-    border-left: 1px solid var(--glass-border);
+    border: 1px solid var(--glass-border);
+    z-index: 5;
 }
 
 .product-details {
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    flex-grow: 1;
-    margin-top: auto;
 }
 
 .stock-badge {
@@ -544,15 +540,18 @@ nav {
 }
 
 .product-price {
-    display: none;
+    font-size: 1.4rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 20px;
 }
 
 .btn-add {
     width: 100%;
-    margin-top: 0;
-    padding: 0 10px;
+    margin-top: 14px;
+    padding: 10px;
     background: transparent;
-    border: 0 solid var(--primary);
+    border: 1px solid var(--primary);
     color: var(--primary);
     border-radius: 8px;
     cursor: pointer;
@@ -560,16 +559,6 @@ nav {
     font-weight: 600;
     position: relative;
     overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-}
-
-.product-card:hover .btn-add {
-    margin-top: 14px;
-    padding: 10px;
-    max-height: 60px;
-    opacity: 1;
-    border-width: 1px;
 }
 
 /* Hide Add to Cart button on product cards (use drag-and-drop instead) */
@@ -1305,7 +1294,6 @@ label {
     overflow-y: auto;
     max-height: 90vh;
     padding-right: 20px;
-    padding-left: 20px;
 }
 
 .modal-card-info h2 {
@@ -1557,7 +1545,7 @@ label {
     left: 0;
     width: 100%;
     /* Background gradient/color to make text readable */
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0));
     padding: 20px;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
@@ -1566,15 +1554,16 @@ label {
     /* Allow clicking buttons */
 }
 
-/* Show details on hover */
+/* Hide details on hover */
 .product-card.single-card:hover .product-details {
-    opacity: 1;
-    pointer-events: auto;
+    opacity: 0;
+    pointer-events: none;
+    /* Prevent clicking hidden buttons */
 }
 
-/* Ensure tag group stays visible */
-.product-card.single-card:hover .tag-group {
-    opacity: 1;
+/* Hide category tag on hover as well */
+.product-card.single-card:hover .category-tag {
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
