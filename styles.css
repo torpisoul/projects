@@ -1224,6 +1224,7 @@ label {
         font-size: 40px;
     }
 }
+
 /* ============================================
    SINGLE CARD SPECIFIC STYLES
    ============================================ */
@@ -1258,18 +1259,20 @@ label {
     left: 0;
     width: 100%;
     /* Background gradient/color to make text readable */
-    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.7) 70%, transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0));
     padding: 20px;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
     z-index: 10;
-    pointer-events: auto; /* Allow clicking buttons */
+    pointer-events: auto;
+    /* Allow clicking buttons */
 }
 
 /* Hide details on hover */
 .product-card.single-card:hover .product-details {
     opacity: 0;
-    pointer-events: none; /* Prevent clicking hidden buttons */
+    pointer-events: none;
+    /* Prevent clicking hidden buttons */
 }
 
 /* Hide category tag on hover as well */
