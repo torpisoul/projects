@@ -351,30 +351,12 @@ async function handleAddToCart(productId) {
         return;
     }
 
-    // Update stock (decrease by 1)
-    const result = await updateStock(productId, 1);
-
-    if (result.success) {
-        alert('✅ Added to cart! Stock updated.');
-        // Refresh the product display
-        const currentFilter = getCurrentFilterCategory();
-        if (currentFilter === 'all-categories') {
-            renderProductsByCategory();
-        } else {
-            renderProducts(currentFilter);
-        }
+    // Add to local basket (delegated to basket-script.js)
+    if (typeof addToBasket === 'function') {
+        addToBasket(product, 1);
     } else {
-        if (result.error === 'insufficient_stock') {
-            alert('❌ Sorry, this item is now out of stock. The page will refresh.');
-            const currentFilter = getCurrentFilterCategory();
-            if (currentFilter === 'all-categories') {
-                renderProductsByCategory();
-            } else {
-                renderProducts(currentFilter);
-            }
-        } else {
-            alert('❌ Unable to add to cart. Please try again.');
-        }
+        console.error('Basket script not loaded');
+        alert('Error adding to cart');
     }
 }
 
@@ -746,7 +728,8 @@ function openCardModal(product) {
     // Add action buttons
     infoHTML += `<div class="modal-actions">`;
     if (stock > 0) {
-        infoHTML += `<button class="btn" onclick="handleAddToCart('${product.id || product.publicCode}')">Add to Cart</button>`;
+        // Use standard Add to Cart handler which now uses basket
+        infoHTML += `<button class="btn" onclick="handleAddToCart('${product.id || product.publicCode}')">Add to Basket</button>`;
     } else {
         infoHTML += `<button class="btn-secondary btn" onclick="notifyMe('${title}')">Notify When Available</button>`;
     }

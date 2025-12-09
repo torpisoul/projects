@@ -332,7 +332,8 @@ function createCardElement(card) {
 
     // Button configuration
     let buttonText = 'Add to Cart';
-    let buttonAction = `handleCardPurchase('${publicCode}', '${name.replace(/'/g, "\\'")}', ${price})`;
+    // Use handleAddToCart from script.js which now uses local basket
+    let buttonAction = `handleAddToCart('${publicCode}')`;
 
     if (!purchasable) {
         buttonText = 'Notify Me';

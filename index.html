@@ -19,6 +19,10 @@
             <a href="#products">Shop</a>
             <a href="#services">Bespoke 3D Models</a>
             <a href="#contact">Contact</a>
+            <a href="javascript:void(0)" onclick="openBasketModal()" class="basket-link">
+                Basket
+                <span id="basket-count" class="basket-badge" style="display: none;">0</span>
+            </a>
             <a href="#" title="Discord Server (Coming Soon)" style="opacity: 0.5; cursor: not-allowed;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <path
@@ -293,6 +297,32 @@
         <div class="modal-card-info" id="modal-card-info"></div>
     </div>
 
+    <!-- Basket Modal -->
+    <div id="basket-modal" class="card-modal" onclick="closeBasketModal(event)">
+        <div class="basket-content" style="background: var(--bg-card); padding: 30px; border-radius: 16px; border: 1px solid var(--glass-border); width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-family: 'Cinzel', serif; color: var(--primary); margin: 0;">Shopping Basket</h2>
+                <span class="close-basket" onclick="closeBasketModal(event)" style="font-size: 30px; cursor: pointer;">&times;</span>
+            </div>
+
+            <div id="basket-items" style="flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px;">
+                <!-- Items injected by JS -->
+            </div>
+
+            <div id="basket-footer" style="border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 20px; font-weight: bold;">
+                    <span>Total:</span>
+                    <span id="basket-subtotal">£0.00</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeBasketModal(event)" class="btn-secondary" style="flex: 1;">Keep Shopping</button>
+                    <button id="checkout-btn" onclick="handleCheckout()" class="btn" style="flex: 1;">Checkout via Stripe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="basket-script.js"></script>
     <script src="script.js"></script>
     <script src="cards-script.js"></script>
     <script>

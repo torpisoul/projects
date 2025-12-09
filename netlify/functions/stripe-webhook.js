@@ -58,25 +58,43 @@ exports.handler = async function (event, context) {
 async function handleCheckoutCompleted(session) {
     console.log('[STRIPE-WEBHOOK] Checkout completed:', session.id);
 
-    // Extract product information from metadata
+    // 1. Check for Cart Items (Multi-item checkout)
+    if (session.metadata?.cart_items) {
+        try {
+            const cartItems = JSON.parse(session.metadata.cart_items);
+            console.log(`[STRIPE-WEBHOOK] Processing basket with ${cartItems.length} items`);
+
+            for (const item of cartItems) {
+                console.log(`[STRIPE-WEBHOOK] Decreasing stock for ${item.id} by ${item.quantity}`);
+                try {
+                    await updateInventoryStock(item.id, -item.quantity);
+                } catch (err) {
+                    console.error(`[STRIPE-WEBHOOK] Failed to update stock for ${item.id}:`, err);
+                }
+            }
+            console.log('[STRIPE-WEBHOOK] Basket processing complete');
+            return;
+        } catch (e) {
+            console.error('[STRIPE-WEBHOOK] Error parsing cart metadata:', e);
+        }
+    }
+
+    // 2. Fallback: Check for Single Product (Legacy / Buy Now)
     const productId = session.metadata?.productId;
     const quantity = parseInt(session.metadata?.quantity || '1');
 
-    if (!productId) {
-        console.warn('[STRIPE-WEBHOOK] No product ID in metadata');
+    if (productId) {
+        console.log(`[STRIPE-WEBHOOK] Decreasing stock for single item ${productId} by ${quantity}`);
+        try {
+            await updateInventoryStock(productId, -quantity);
+            console.log('[STRIPE-WEBHOOK] Stock updated successfully');
+        } catch (error) {
+            console.error('[STRIPE-WEBHOOK] Failed to update stock:', error);
+        }
         return;
     }
 
-    console.log(`[STRIPE-WEBHOOK] Decreasing stock for ${productId} by ${quantity}`);
-
-    try {
-        // Call inventory function to decrease stock
-        await updateInventoryStock(productId, -quantity);
-        console.log('[STRIPE-WEBHOOK] Stock updated successfully');
-    } catch (error) {
-        console.error('[STRIPE-WEBHOOK] Failed to update stock:', error);
-        // TODO: Send alert email to admin
-    }
+    console.warn('[STRIPE-WEBHOOK] No product info found in metadata');
 }
 
 async function handlePaymentSucceeded(paymentIntent) {

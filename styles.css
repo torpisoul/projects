@@ -71,6 +71,32 @@ nav {
     border-bottom: 1px solid var(--glass-border);
 }
 
+.basket-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.basket-link:hover {
+    color: var(--accent);
+}
+
+.basket-badge {
+    position: absolute;
+    top: -8px;
+    right: -15px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
 .logo {
     font-size: 1.8rem;
     color: white;
@@ -289,6 +315,103 @@ nav {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
+}
+
+/* Basket Items */
+.basket-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.basket-item:last-child {
+    border-bottom: none;
+}
+
+.basket-item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.basket-item-details {
+    flex: 1;
+}
+
+.basket-item-title {
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 5px;
+}
+
+.basket-item-price {
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.basket-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.basket-controls button {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.basket-controls button:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.basket-controls button.remove-btn {
+    width: auto;
+    padding: 0 10px;
+    font-size: 0.8rem;
+    margin-left: auto;
+    background: transparent;
+    color: #ff7675;
+    border-color: rgba(255, 118, 117, 0.3);
+}
+
+.basket-controls button.remove-btn:hover {
+    background: #ff7675;
+    color: white;
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-card);
+    border: 1px solid var(--primary);
+    padding: 12px 24px;
+    border-radius: 30px;
+    color: white;
+    z-index: 10002;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
 }
 
 .product-card {
