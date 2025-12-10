@@ -1,7 +1,7 @@
 // const fetch = require('node-fetch'); // Using built-in fetch
 
 // Card inventory bin ID - UPDATE THIS after creating the bin
-const CARD_INVENTORY_BIN_ID = process.env.CARD_INVENTORY_BIN_ID || '692e1a8443b1c97be9d1746c';
+const CARD_INVENTORY_BIN_ID = process.env.CARD_INVENTORY_BIN_ID;
 
 exports.handler = async function (event) {
     // Use env var - no fallback to hardcoded key for security

@@ -1,6 +1,0 @@
-// Quick fix for the 'All' filter issue
-// Replace line 120 in script.js with this:
-
-const filteredProducts = filter === 'all' ? products.filter(p => p.category !== 'singles') : products.filter(p => p.category === filter);
-
-// This ensures 'all' shows all products EXCEPT singles (which have their own special handling)
