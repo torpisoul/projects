@@ -412,16 +412,23 @@
         let pendingChanges = {}; // Track unsaved stock changes
         let cardPrices = {}; // Store price data
 
-        // Bin Mapping
-        const BIN_MAP = {
-            'calm': '692da2d1d0ea881f400b9ff3',
-            'fury': '692da2d2d0ea881f400b9ff6',
-            'order': '692da2d3d0ea881f400b9ffc',
-            'chaos': '692da2d443b1c97be9d09818',
-            'mind': '692da2d543b1c97be9d0981c',
-            'body': '692da2d6d0ea881f400ba004',
-            'dual': '692da2d7d0ea881f400ba009'
-        };
+        // Bin Mapping - loaded from server
+        let BIN_MAP = {};
+
+        // Fetch bin configuration from server
+        async function loadBinConfig() {
+            try {
+                const response = await fetch('/.netlify/functions/bin-config');
+                if (response.ok) {
+                    BIN_MAP = await response.json();
+                    console.log('Loaded bin config:', BIN_MAP);
+                } else {
+                    console.error('Failed to load bin config');
+                }
+            } catch (error) {
+                console.error('Error loading bin config:', error);
+            }
+        }
 
         async function loadInventory() {
             const container = document.getElementById('inventory-container');
@@ -821,7 +828,12 @@
             updateSaveButton();
         };
 
-        loadInventory();
+        // Initialize: load bin config first, then inventory
+        async function init() {
+            await loadBinConfig();
+            await loadInventory();
+        }
+        init();
     </script>
 </body>
 

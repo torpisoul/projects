@@ -11,15 +11,15 @@ try {
 
 const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || config.JSONBIN_API_KEY;
 
-// Bin IDs for each domain
+// Bin IDs for each domain - loaded from environment variables
 const DOMAIN_BINS = {
-    "calm": "692da2d1d0ea881f400b9ff3",
-    "fury": "692da2d2d0ea881f400b9ff6",
-    "order": "692da2d3d0ea881f400b9ffc",
-    "chaos": "692da2d443b1c97be9d09818",
-    "mind": "692da2d543b1c97be9d0981c",
-    "body": "692da2d6d0ea881f400ba004",
-    "dual": "692da2d7d0ea881f400ba009"
+    "calm": config.CALM_BIN_ID || process.env.CALM_BIN_ID,
+    "fury": config.FURY_BIN_ID || process.env.FURY_BIN_ID,
+    "order": config.ORDER_BIN_ID || process.env.ORDER_BIN_ID,
+    "chaos": config.CHAOS_BIN_ID || process.env.CHAOS_BIN_ID,
+    "mind": config.MIND_BIN_ID || process.env.MIND_BIN_ID,
+    "body": config.BODY_BIN_ID || process.env.BODY_BIN_ID,
+    "dual": config.DUAL_BIN_ID || process.env.DUAL_BIN_ID
 };
 
 // Cache the card data in memory
@@ -52,16 +52,16 @@ async function fetchBin(binId, apiKey) {
             return record.page.cards.items;
         } else if (record.page && record.page.cards) {
             // New structure might be here
-             return record.page.cards;
+            return record.page.cards;
         } else if (record.items) {
-             return record.items;
+            return record.items;
         }
 
         // Deep inspection for nested items
         if (JSON.stringify(record).includes('"items":[')) {
-             // Fallback: try to find the array of items
-             // Note: This is a hacky way to find where the items are
-             if (record.page && record.page.cards && Array.isArray(record.page.cards.items)) return record.page.cards.items;
+            // Fallback: try to find the array of items
+            // Note: This is a hacky way to find where the items are
+            if (record.page && record.page.cards && Array.isArray(record.page.cards.items)) return record.page.cards.items;
         }
 
         console.log(`Bin ${binId} structure unknown:`, Object.keys(record));

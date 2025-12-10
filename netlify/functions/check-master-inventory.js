@@ -40,7 +40,8 @@ exports.handler = async function (event, context) {
                     const inventory = parsed.record?.inventory || parsed.inventory || [];
 
                     // Find dual-domain entries
-                    const dualEntries = inventory.filter(item => item.binId === '692da2d7d0ea881f400ba009');
+                    const DUAL_BIN_ID = process.env.DUAL_BIN_ID;
+                    const dualEntries = inventory.filter(item => item.binId === DUAL_BIN_ID);
 
                     resolve({
                         statusCode: 200,

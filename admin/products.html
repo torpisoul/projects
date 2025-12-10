@@ -462,7 +462,7 @@
         let products = [];
         let currentFilter = 'all';
         let editingProductId = null;
-        const PRODUCTS_BIN_ID = process.env.PRODUCTS_BIN_ID; // From your setup
+        // PRODUCTS_BIN_ID is handled server-side in the products function
 
         // Load products
         async function loadProducts() {
@@ -583,7 +583,6 @@
                         productId: productId,
                         stock: stock,
                         action: 'set',
-                        binId: PRODUCTS_BIN_ID,
                         category: product.category
                     })
                 });
@@ -657,8 +656,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: editingProductId ? 'update' : 'add',
-                        product: productData,
-                        binId: PRODUCTS_BIN_ID
+                        product: productData
                     })
                 });
 
@@ -694,8 +692,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'delete',
-                        productId: productId,
-                        binId: PRODUCTS_BIN_ID
+                        productId: productId
                     })
                 });
 
