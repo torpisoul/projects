@@ -11,8 +11,8 @@ try {
     console.log('No config.js found, using environment variables');
 }
 
-const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || config.JSONBIN_API_KEY;
-const PRODUCTS_BIN_ID = process.env.PRODUCTS_BIN_ID || config.PRODUCTS_BIN_ID || '6930a9c3d0ea881f4010f6d3';
+const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY;
+const PRODUCTS_BIN_ID = process.env.PRODUCTS_BIN_ID;
 
 if (!JSONBIN_API_KEY) {
     console.error('❌ JSONBIN_API_KEY not set!');
