@@ -9,7 +9,7 @@ export default defineConfig({
     reporter: 'html',
 
     use: {
-        baseURL: 'http://localhost:8888',
+        baseURL: 'http://localhost:8080',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
     },
@@ -21,11 +21,9 @@ export default defineConfig({
         },
     ],
 
-    // Don't start the dev server - assume netlify dev is already running
-    // If you want to auto-start, uncomment this:
-    // webServer: {
-    //   command: 'netlify dev',
-    //   url: 'http://localhost:8888',
-    //   reuseExistingServer: !process.env.CI,
-    // },
+    webServer: {
+      command: 'npx http-server -p 8080 -c-1',
+      url: 'http://localhost:8080',
+      reuseExistingServer: !process.env.CI,
+    },
 });

@@ -378,6 +378,13 @@ nav {
 /* --- PRODUCT SEARCH --- */
 .search-container {
     animation: fadeIn 0.3s ease;
+    position: sticky;
+    top: 108px;
+    /* Adjust based on nav height */
+    z-index: 99;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: linear-gradient(to bottom, var(--bg-dark), transparent);
 }
 
 @keyframes fadeIn {
@@ -1419,21 +1426,29 @@ label {
         align-items: center;
         padding: 10px;
         overflow-y: auto;
+        justify-content: flex-start;
+        /* Start from top */
+        padding-top: 60px;
+        /* Space for close button */
     }
 
     .modal-card-image {
         max-width: 90vw;
-        max-height: 50vh;
+        max-height: 40vh;
+        /* Reduced height to fit info */
         margin-bottom: 20px;
+        object-fit: contain;
     }
 
     .modal-card-info {
         flex: 1;
-        position: absolute;
-        top: 31rem;
-        padding-right: 3rem;
-        padding-left: 3rem;
+        position: static;
+        /* Removed absolute positioning */
+        padding: 20px;
         width: 100%;
+        max-height: none;
+        /* Allow full height */
+        overflow-y: visible;
     }
 
     .modal-card-info h2 {
@@ -1479,7 +1494,7 @@ label {
     }
 
     .modal-card-image {
-        max-width: 95vw;
+        padding-top: 30px max-width: 95vw;
         max-height: 45vh;
         border-radius: 12px;
     }
@@ -1640,4 +1655,31 @@ label {
     box-shadow: 0 0 20px rgba(255, 140, 66, 0.5);
     border-radius: 8px;
     object-fit: cover;
+}
+
+/* Responsive Nav for Mobile */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        padding: 10px 5%;
+    }
+
+    .nav-links {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    .nav-links a {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        white-space: nowrap;
+    }
+
+    /* Shorten text if needed or handle overflow */
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 }
