@@ -1641,3 +1641,30 @@ label {
     border-radius: 8px;
     object-fit: cover;
 }
+
+/* Responsive Nav for Mobile */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        padding: 10px 5%;
+    }
+
+    .nav-links {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    .nav-links a {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        white-space: nowrap;
+    }
+
+    /* Shorten text if needed or handle overflow */
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
