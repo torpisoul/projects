@@ -1494,7 +1494,8 @@ label {
     }
 
     .modal-card-image {
-        padding-top: 30px max-width: 95vw;
+        padding-top: 30px;
+        max-width: 95vw;
         max-height: 45vh;
         border-radius: 12px;
     }

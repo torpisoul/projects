@@ -1,54 +1,52 @@
 // netlify/functions/create-checkout-session.js
-// Try to load .env file if available (useful for local dev if not using netlify dev or if it fails to inject)
-try {
-    require('dotenv').config();
-} catch (e) {
-    // Ignore if dotenv is missing or fails
-}
-
 const inventoryFunction = require('./inventory');
+const Stripe = require('stripe');
 
-// Initialize Stripe conditionally
-let stripe;
-let stripeInitError = null;
+// Cache the initialized stripe instance
+let stripeInstance = null;
 
-try {
-    if (process.env.STRIPE_SECRET_KEY) {
-        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    } else {
-        stripeInitError = 'STRIPE_SECRET_KEY environment variable is missing.';
-        console.warn('⚠️ ' + stripeInitError);
-    }
-} catch (err) {
-    stripeInitError = `Failed to load Stripe module: ${err.message}`;
-    console.error(stripeInitError);
-}
-
-exports.handler = async function(event, context) {
+exports.handler = async function (event, context) {
     // Only allow POST
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
-    // Check initialization
-    if (!stripe) {
-        console.error('Stripe initialization failed:', stripeInitError);
+    // Lazy initialize Stripe inside handler to ensure env vars are available
+    // But use cached instance if already initialized
+    if (!stripeInstance) {
+        const stripeKey = process.env.TEST_STRIPE_SECRET_KEY ||
+            process.env.PROD_STRIPE_SECRET_KEY ||
+            process.env.STRIPE_SECRET_KEY;
 
-        // Prepare debug info: list available environment keys (excluding values for security)
-        const availableKeys = Object.keys(process.env).sort();
+        if (!stripeKey) {
+            const availableKeys = Object.keys(process.env).filter(k => k.includes('STRIPE')).sort();
+            console.error('No Stripe secret key found. Available STRIPE keys:', availableKeys);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    error: 'Payment system configuration error',
+                    details: 'No Stripe secret key found. Expected TEST_STRIPE_SECRET_KEY, PROD_STRIPE_SECRET_KEY, or STRIPE_SECRET_KEY.',
+                    debug: { stripeKeys: availableKeys }
+                })
+            };
+        }
 
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: 'Payment system configuration error',
-                details: stripeInitError,
-                debug: {
-                    message: "Available environment variables (names only):",
-                    keys: availableKeys
-                }
-            })
-        };
+        try {
+            stripeInstance = new Stripe(stripeKey);
+            console.log('✅ Stripe initialized successfully');
+        } catch (err) {
+            console.error('Failed to initialize Stripe:', err.message);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({
+                    error: 'Payment system configuration error',
+                    details: `Failed to initialize Stripe: ${err.message}`
+                })
+            };
+        }
     }
+
+    const stripe = stripeInstance;
 
     try {
         const { cart } = JSON.parse(event.body);
